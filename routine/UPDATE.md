@@ -1,64 +1,65 @@
-# Routine: refresh WC 2026 results (runs every 12h)
+# Routine: refresh official standings (runs every 12h)
 
-You are updating **only match results** in `data.json`. All scoring and standings
-are derived in the browser from these results — never hand-tally points, never edit
-scoring logic, never precompute tables into `data.json`.
+The scoreboard derives all group tables, qualifiers, and Phase-1 points from the
+**official FIFA standings** stored in `data.json` as `tables` (per-group standings
+in official order) and `bestThirds` (the team codes of the qualifying third-placed
+teams). These official tables already encode FIFA's deep tiebreakers (head-to-head,
+card conduct, world ranking) which cannot be recomputed from scores alone — so we
+fetch them rather than calculate our own.
+
+Your job each run is to refresh those two fields from Wikipedia. Two committed
+scripts do the work deterministically; just run them in order.
 
 ## Steps
 
-1. **Snapshot ranks first.** Compute the current standings and write each player's
-   current rank into `previousRanks` ({ "<name>": <rank> }) BEFORE changing any
-   results. This drives the ▲▼ movement arrows for the next cycle. You can get the
-   ranks with:
+1. Make sure deps are present (first run only):
 
    ```bash
-   node --input-type=module -e "
-   import { readFileSync, writeFileSync } from 'node:fs';
-   import { computeAllTables, projectedQualifiers, buildStandings } from './compute.js';
-   const d = JSON.parse(readFileSync('data.json','utf8'));
-   const st = buildStandings(d.players, projectedQualifiers(computeAllTables(d.groups, d.results)), {});
-   d.previousRanks = Object.fromEntries(st.map(p => [p.name, p.rank]));
-   writeFileSync('data.json', JSON.stringify(d, null, 2) + '\n');
-   "
+   pip install pandas lxml >/dev/null 2>&1 || pip3 install pandas lxml >/dev/null 2>&1 || true
    ```
 
-2. **Fetch the latest scores.** Web-search current FIFA World Cup 2026 group-stage
-   results and live matches. For each played or in-play match set
-   `results["<GroupLetter><MatchNo 1-6>"]`:
-   - finished: `[homeGoals, awayGoals]`
-   - in-play: `[homeGoals, awayGoals, "LIVE", minute]`
-   - not started: leave the key absent (delete it if present).
+2. Snapshot current ranks (for the ▲▼ movement arrows) BEFORE fetching new data:
 
-   Match order per group (T1..T4 = the order in `groups[L]`):
-   `1:T1vT2  2:T3vT4  3:T1vT3  4:T2vT4  5:T1vT4  6:T2vT3`.
-   The Fixtures tab is generated from this mapping, so make sure each result lands on
-   the right match number. If the official fixture order/teams differ from
-   `groups[L]`, fix the team order in `groups[L]` (keep each `[code,name,flag]` intact)
-   so the mapping stays correct.
+   ```bash
+   node scripts/snapshot-ranks.mjs
+   ```
 
-3. **Stamp the time.** Set `meta.lastUpdated` to the current ISO timestamp.
+3. Fetch the official group standings + third-placed ranking from
+   `https://en.wikipedia.org/wiki/2026_FIFA_World_Cup` and write `tables` +
+   `bestThirds` + `meta.lastUpdated`:
 
-4. **Verify.** Run the checks and fix anything that fails:
+   ```bash
+   python3 scripts/fetch-official.py
+   ```
+
+   If it exits with `UNMAPPED TEAM NAME`, add that name to the `ALIAS` map at the
+   top of `scripts/fetch-official.py` (mapping it to our 3-letter code) and re-run.
+   The script validates that every group's four teams match our known draw, so a
+   mismatch means the parse or the alias map needs fixing — do not force it.
+
+4. Verify, then commit & push:
 
    ```bash
    node --test
    node scripts/validate-data.mjs
-   ```
-
-5. **Commit & push.**
-
-   ```bash
-   git add data.json
-   git commit -m "chore: update results $(date -u +%Y-%m-%d)"
+   git add data.json scripts/fetch-official.py
+   git commit -m "chore: update official tables $(date -u +%Y-%m-%d)"
    git push
    ```
 
-   GitHub Pages redeploys automatically within a minute or two.
+   GitHub Pages redeploys automatically.
 
 ## Never
 
-- Don't edit `players[].picks`, `q1`, `q2`, `q3`, or `b` — those are organizer-owned
-  (`b` is set by hand only when the tournament's winner / golden boot / golden glove
-  are decided).
-- Don't precompute `q`, `g`, `total`, group tables, or qualifiers into `data.json`.
+- Don't edit `players[].picks` / `q1` / `q2` / `q3` / `b` (organizer-owned; `b` is
+  set by hand only when the winner / golden boot / golden glove are decided).
 - Don't touch `index.html`, `app.js`, or `compute.js`.
+- Don't hand-write `tables`, `bestThirds`, group standings, or player points —
+  always let `fetch-official.py` produce them.
+
+## Note on per-match fixtures
+
+`results` (individual match scores) is intentionally empty: our synthetic match
+numbering can't represent the real fixture order, so the Fixtures tab shows the
+schedule without scores. Standings come from the official `tables`. Wiring a real
+fixtures feed is a separate enhancement.

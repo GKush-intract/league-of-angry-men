@@ -28,24 +28,56 @@ export function computeAllTables(groups, results) {
   return out;
 }
 
-// Projected qualifiers: top-2 of each group + the 8 best 3rd-placed teams.
-export function projectedQualifiers(tables) {
-  const top2 = {}, started = {}, groupQ = {};
-  const thirds = [];
+// Per group, prefer the OFFICIAL standings table when supplied (it already bakes in
+// FIFA's deep tiebreakers — head-to-head, card conduct, world ranking — that we can't
+// recompute), otherwise fall back to computing the table from raw results.
+// officialTables: { L: [ {code,p,w,d,l,gf,ga,gd,pts}, ... in official order ] }
+export function resolveTables(groups, results, officialTables) {
+  const out = {};
   for (const L of GROUP_LETTERS) {
-    const t = tables[L];
-    top2[L] = [t[0].code, t[1].code];
-    started[L] = t.some(s => s.p > 0);
-    thirds.push({ L, team: t[2] });
+    const off = officialTables && officialTables[L];
+    if (off && off.length) {
+      const meta = {};
+      for (const t of (groups[L] || [])) meta[t[0]] = { name: t[1], flag: t[2] };
+      out[L] = off.map(r => ({
+        code: r.code, name: meta[r.code]?.name || r.code, flag: meta[r.code]?.flag || '',
+        p: r.p || 0, w: r.w || 0, d: r.d || 0, l: r.l || 0, gf: r.gf || 0, ga: r.ga || 0,
+        gd: (r.gd != null ? r.gd : (r.gf || 0) - (r.ga || 0)), pts: r.pts || 0,
+      }));
+    } else {
+      out[L] = computeGroupTable(L, groups[L], results || {});
+    }
   }
-  thirds.sort((a, b) =>
-    b.team.pts - a.team.pts || b.team.gd - a.team.gd ||
-    b.team.gf - a.team.gf || a.team.name.localeCompare(b.team.name));
-  const best8 = new Set(thirds.slice(0, 8).map(x => x.L));
+  return out;
+}
+
+// Projected qualifiers: top-2 of each group + the 8 best 3rd-placed teams.
+// If `bestThirds` (an array of team codes from the official "ranking of third-placed
+// teams" table) is supplied, use it verbatim; otherwise rank thirds by Pts→GD→GF→name.
+export function projectedQualifiers(tables, bestThirds = null) {
+  const top2 = {}, started = {}, groupQ = {};
+  for (const L of GROUP_LETTERS) {
+    const t = tables[L] || [];
+    top2[L] = [t[0]?.code, t[1]?.code];
+    started[L] = t.some(s => s.p > 0);
+  }
+  let best8;
+  if (bestThirds && bestThirds.length) {
+    const set = new Set(bestThirds);
+    best8 = new Set(GROUP_LETTERS.filter(L => tables[L]?.[2] && set.has(tables[L][2].code)));
+  } else {
+    const thirds = GROUP_LETTERS
+      .map(L => ({ L, team: tables[L]?.[2] }))
+      .filter(x => x.team);
+    thirds.sort((a, b) =>
+      b.team.pts - a.team.pts || b.team.gd - a.team.gd ||
+      b.team.gf - a.team.gf || a.team.name.localeCompare(b.team.name));
+    best8 = new Set(thirds.slice(0, 8).map(x => x.L));
+  }
   const qualified = new Set();
   for (const L of GROUP_LETTERS) {
-    const codes = [...top2[L]];
-    if (best8.has(L)) codes.push(tables[L][2].code);
+    const codes = [top2[L][0], top2[L][1]].filter(Boolean);
+    if (best8.has(L) && tables[L]?.[2]) codes.push(tables[L][2].code);
     groupQ[L] = codes;
     codes.forEach(c => qualified.add(c));
   }

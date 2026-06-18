@@ -21,6 +21,24 @@ export function validate(data) {
       errors.push(`result ${k} malformed`);
   }
 
+  // optional official tables + bestThirds
+  if (data.tables) {
+    for (const L of LETTERS) {
+      const tb = data.tables[L];
+      if (!tb) continue;
+      if (tb.length !== 4) warnings.push(`tables ${L}: ${tb.length} rows (expected 4)`);
+      for (const r of tb)
+        if (codeByGroup[L] && !codeByGroup[L].has(r.code))
+          errors.push(`tables ${L}: code ${r.code} not in group`);
+    }
+  }
+  if (data.bestThirds) {
+    const all = new Set(Object.values(codeByGroup).flatMap(s => [...s]));
+    if (data.bestThirds.length > 8) warnings.push(`bestThirds has ${data.bestThirds.length} (max 8)`);
+    for (const c of data.bestThirds)
+      if (!all.has(c)) errors.push(`bestThirds: unknown code ${c}`);
+  }
+
   const rows = [];
   for (const p of (data.players || [])) {
     let total = 0; const counts = {};

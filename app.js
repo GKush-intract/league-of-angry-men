@@ -1,5 +1,5 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
-import { computeAllTables, projectedQualifiers, buildStandings, bonusGroups, FIX, GROUP_LETTERS } from './compute.js';
+import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, FIX, GROUP_LETTERS } from './compute.js';
 
 const state = { tab: 'standings', selected: null };
 let DATA, TABLES, PROJ, STAND, TEAM, POT;
@@ -28,8 +28,10 @@ async function boot() {
   render();
 }
 function recompute() {
-  TABLES = computeAllTables(DATA.groups, DATA.results || {});
-  PROJ = projectedQualifiers(TABLES);
+  // Prefer official standings tables + published best-thirds; fall back to computing
+  // from raw results when those aren't present in data.json.
+  TABLES = resolveTables(DATA.groups, DATA.results || {}, DATA.tables);
+  PROJ = projectedQualifiers(TABLES, DATA.bestThirds || null);
   STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {});
 }
 
@@ -150,7 +152,7 @@ function viewSchedule() {
       });
     }
   }
-  html += `<div style="font-size:11px;color:#5f7567;text-align:center;margin-top:14px;">Scores auto-update every ~12h. Group tables are computed from them.</div>`;
+  html += `<div style="font-size:11px;color:#5f7567;text-align:center;margin-top:14px;">Group tables &amp; standings use the official FIFA tables (auto-synced ~12h). Per-match results coming soon.</div>`;
   return html;
 }
 

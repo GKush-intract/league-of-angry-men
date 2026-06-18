@@ -8,15 +8,19 @@ Phase-1 points. Hosted on GitHub Pages.
 
     python3 -m http.server 8000   # then open http://localhost:8000
 
-## Update results
+## Update standings
 
-Edit `results` in `data.json`:
-- key = group letter + match number 1–6 (e.g. `"A3"`)
-- value = `[homeGoals, awayGoals]`; add `"LIVE", minute` for in-play; delete the key for upcoming
-- match order per group: `1:T1vT2  2:T3vT4  3:T1vT3  4:T2vT4  5:T1vT4  6:T2vT3`
+Group tables and qualifiers come from the **official FIFA standings** (Wikipedia),
+stored in `data.json` as `tables` (per-group standings in official order) and
+`bestThirds` (qualifying third-placed team codes). These bake in FIFA's deep
+tiebreakers (head-to-head, card conduct, world ranking) that can't be recomputed
+from scores. Refresh them with:
 
-Commit & push — Pages redeploys automatically. The 12-hour routine does this for you
-(see `routine/UPDATE.md`).
+    node scripts/snapshot-ranks.mjs   # movement arrows
+    python3 scripts/fetch-official.py # official tables + best thirds (needs pandas, lxml)
+
+Commit & push — Pages redeploys automatically. The 12-hour routine does this for
+you (see `routine/UPDATE.md`).
 
 ## Test
 
@@ -43,4 +47,5 @@ user-triggered (you run it in a Claude Code session, it is billed to you):
 - **q** — 1 pt per picked team currently projected to reach the Round of 32.
 - **g** — +2 per group where a player's picks exactly equal that group's projected qualifiers.
 - **b** — Q1–Q3 bonus (winner / golden boot / golden glove), entered manually at tournament end.
-- Projected qualifiers = top 2 of each group + the 8 best 3rd-placed teams. Provisional & live.
+- Projected qualifiers = top 2 of each group + the 8 best 3rd-placed teams, taken from the
+  official tables / third-place ranking. Provisional & live.

@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Fetch the official 2026 FIFA World Cup group standings + third-placed ranking
+from Wikipedia and write them into data.json as `tables` and `bestThirds`.
+
+These official tables already encode FIFA's deep tiebreakers (head-to-head, card
+conduct, world ranking), which we cannot recompute from scores alone. The browser
+uses them directly for group tables, qualifiers, and Phase-1 points.
+
+Only `tables`, `bestThirds`, and `meta.lastUpdated` are written. `results`,
+`players`, and `previousRanks` are left untouched (run snapshot-ranks.mjs first
+for movement arrows). Exits non-zero on any unmapped team or validation failure.
+
+Usage:  python3 scripts/fetch-official.py
+Deps:   pandas, lxml   (pip install pandas lxml)
+"""
+import json, re, sys, io, urllib.request, datetime
+
+URL = "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup"
+
+ALIAS = {
+ 'mexico':'MEX','south korea':'KOR','korea republic':'KOR','czech republic':'CZE','czechia':'CZE','south africa':'RSA',
+ 'switzerland':'SUI','canada':'CAN','qatar':'QAT','bosnia and herzegovina':'BIH','bosnia & herzegovina':'BIH',
+ 'brazil':'BRA','morocco':'MAR','scotland':'SCO','haiti':'HAI',
+ 'united states':'USA','turkey':'TUR','türkiye':'TUR','australia':'AUS','paraguay':'PAR',
+ 'germany':'GER','ecuador':'ECU','ivory coast':'CIV',"côte d'ivoire":'CIV',"cote d'ivoire":'CIV','curaçao':'CUW','curacao':'CUW',
+ 'netherlands':'NED','japan':'JPN','sweden':'SWE','tunisia':'TUN',
+ 'belgium':'BEL','iran':'IRN','ir iran':'IRN','egypt':'EGY','new zealand':'NZL',
+ 'spain':'ESP','uruguay':'URU','saudi arabia':'KSA','cape verde':'CPV','cabo verde':'CPV',
+ 'france':'FRA','senegal':'SEN','norway':'NOR','iraq':'IRQ',
+ 'argentina':'ARG','austria':'AUT','algeria':'ALG','jordan':'JOR',
+ 'portugal':'POR','colombia':'COL','dr congo':'COD','democratic republic of the congo':'COD','congo dr':'COD','uzbekistan':'UZB',
+ 'england':'ENG','croatia':'CRO','panama':'PAN','ghana':'GHA',
+}
+
+def code(name):
+    n = re.sub(r'\(.*?\)', '', str(name))   # drop (H) host marker
+    n = re.sub(r'\[.*?\]', '', n)           # drop footnotes
+    n = n.strip().lower()
+    if n not in ALIAS:
+        sys.exit(f"UNMAPPED TEAM NAME: {name!r} — add it to ALIAS in fetch-official.py")
+    return ALIAS[n]
+
+def num(x):
+    s = str(x).replace('−', '-').replace('+', '')
+    m = re.search(r'-?\d+', s)
+    return int(m.group()) if m else 0
+
+def main():
+    import pandas as pd, warnings
+    warnings.filterwarnings('ignore')
+    req = urllib.request.Request(URL, headers={'User-Agent': 'angry-men-predictor/1.0 (results updater)'})
+    html = urllib.request.urlopen(req, timeout=60).read().decode('utf-8', 'replace')
+    ts = pd.read_html(io.StringIO(html))
+
+    std, thirds = [], None
+    for t in ts:
+        flat = ' '.join(str(c) for c in t.columns)
+        if 'Pld' in flat and 'Pts' in flat:
+            if 'Grp' in flat:
+                thirds = t
+            elif len(t) == 4:
+                std.append(t)
+    if len(std) != 12 or thirds is None:
+        sys.exit(f"unexpected tables: {len(std)} group tables, thirds={'yes' if thirds is not None else 'no'}")
+
+    data = json.load(open('data.json', encoding='utf-8'))
+    groupset = {L: set(x[0] for x in data['groups'][L]) for L in 'ABCDEFGHIJKL'}
+
+    tables = {}
+    for t in std:
+        tcol = next(c for c in t.columns if 'Team' in str(c))
+        rows = []
+        for _, r in t.iterrows():
+            rows.append({'code': code(r[tcol]), 'p': num(r['Pld']), 'w': num(r['W']), 'd': num(r['D']),
+                         'l': num(r['L']), 'gf': num(r['GF']), 'ga': num(r['GA']), 'gd': num(r['GD']), 'pts': num(r['Pts'])})
+        codes = {x['code'] for x in rows}
+        L = next((g for g in groupset if groupset[g] == codes), None)
+        if L is None:
+            sys.exit(f"group standings did not match any known group: {codes}")
+        tables[L] = rows
+
+    qcol = next(c for c in thirds.columns if 'qualify' in str(c).lower())
+    tcol = next(c for c in thirds.columns if 'Team' in str(c))
+    best = [code(r[tcol]) for _, r in thirds.iterrows() if 'Knockout' in str(r[qcol])]
+    if not (1 <= len(best) <= 8):
+        sys.exit(f"unexpected bestThirds count: {len(best)} -> {best}")
+
+    data['tables'] = {L: tables[L] for L in 'ABCDEFGHIJKL'}
+    data['bestThirds'] = best
+    data['meta']['lastUpdated'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    json.dump(data, open('data.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+    open('data.json', 'a').write('\n')
+    print(f"OK: 12 official tables + {len(best)} best-thirds written -> {best}")
+
+if __name__ == '__main__':
+    main()

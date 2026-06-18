@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  computeGroupTable, computeAllTables, projectedQualifiers,
+  computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
 } from '../compute.js';
 
@@ -33,6 +33,23 @@ test('computeAllTables covers 12 groups', () => {
   assert.equal(Object.keys(computeAllTables(groups, {})).length, 12);
 });
 
+// ---- official tables override ----
+test('resolveTables: uses official standings order when provided, else computes', () => {
+  const groups = { ...Object.fromEntries(GROUP_LETTERS.map(L => [L, teamsA])) };
+  // official table for A puts South Africa top despite a computed result saying Mexico
+  const official = { A: [
+    { code: 'RSA', p: 1, w: 1, d: 0, l: 0, gf: 5, ga: 0, gd: 5, pts: 3 },
+    { code: 'MEX', p: 1, w: 1, d: 0, l: 0, gf: 2, ga: 1, gd: 1, pts: 3 },
+    { code: 'KOR', p: 1, w: 0, d: 0, l: 1, gf: 1, ga: 2, gd: -1, pts: 0 },
+    { code: 'CZE', p: 1, w: 0, d: 0, l: 1, gf: 0, ga: 5, gd: -5, pts: 0 },
+  ] };
+  const tables = resolveTables(groups, { A1: [2, 1] }, official);
+  assert.equal(tables.A[0].code, 'RSA');            // official order wins
+  assert.equal(tables.A[0].name, 'South Africa');   // name/flag filled from groups
+  assert.equal(tables.A[0].pts, 3);
+  assert.equal(tables.B[0].p, 0);                   // B has no official -> computed (empty)
+});
+
 // ---- projected qualifiers ----
 test('projectedQualifiers: 32 qualified, 8 best thirds add a 3rd team', () => {
   const mk = (n) => [["T1" + n, "T1 " + n, "🏳️"], ["T2" + n, "T2 " + n, "🏳️"], ["T3" + n, "T3 " + n, "🏳️"], ["T4" + n, "T4 " + n, "🏳️"]];
@@ -51,6 +68,19 @@ test('projectedQualifiers: started flag reflects played matches', () => {
   const proj = projectedQualifiers(computeAllTables(groups, { A1: [1, 0] }));
   assert.equal(proj.started.A, true);
   assert.equal(proj.started.B, false);
+});
+
+test('projectedQualifiers: honors an explicit bestThirds list', () => {
+  const mk = (n) => [["T1" + n, "a", "🏳️"], ["T2" + n, "b", "🏳️"], ["T3" + n, "c", "🏳️"], ["T4" + n, "d", "🏳️"]];
+  const groups = Object.fromEntries(GROUP_LETTERS.map(L => [L, mk(L)]));
+  const tables = computeAllTables(groups, {});
+  // explicitly qualify only group A's and B's third-placed teams
+  const proj = projectedQualifiers(tables, ['T3A', 'T3B']);
+  assert.deepEqual([...proj.best8].sort(), ['A', 'B']);
+  assert.equal(proj.groupQ.A.length, 3);  // top2 + qualifying 3rd
+  assert.equal(proj.groupQ.C.length, 2);  // C's third not in list
+  assert.ok(proj.qualified.has('T3A'));
+  assert.ok(!proj.qualified.has('T3C'));
 });
 
 // ---- scoring + standings ----
