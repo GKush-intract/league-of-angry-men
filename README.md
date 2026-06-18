@@ -34,13 +34,18 @@ you (see `routine/UPDATE.md`).
 
 Live at `https://GKush-intract.github.io/league-of-angry-men/` within a minute or two.
 
-## Schedule the 12-hour auto-update (after deploy)
+## Auto-update (GitHub Actions)
 
-The updater is a scheduled cloud agent that follows `routine/UPDATE.md`. It is
-user-triggered (you run it in a Claude Code session, it is billed to you):
+A scheduled GitHub Action (`.github/workflows/update-standings.yml`) refreshes the
+official tables every 12h — free, and on GitHub's runners which (unlike the
+egress-restricted Claude cloud agent) have internet access to reach Wikipedia. It
+runs the same scripts, then commits and pushes.
 
-    /schedule create a routine every 12 hours that follows routine/UPDATE.md in
-    this repo: fetch the latest WC 2026 group results, update data.json, commit and push.
+Run it on demand anytime: repo **Actions** tab → *Update standings* → *Run workflow*
+(or `gh workflow run update-standings.yml`).
+
+> `routine/UPDATE.md` documents the equivalent Claude-routine flow; that routine is
+> disabled in favour of the Action (the cloud sandbox blocks outbound network).
 
 ## How scoring works
 
