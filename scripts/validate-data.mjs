@@ -38,6 +38,14 @@ export function validate(data) {
     for (const c of data.bestThirds)
       if (!all.has(c)) errors.push(`bestThirds: unknown code ${c}`);
   }
+  if (data.matches) {
+    for (const m of data.matches) {
+      const g = codeByGroup[m.g];
+      if (!g) { errors.push(`match in unknown group ${m.g}`); continue; }
+      if (!g.has(m.h)) errors.push(`match ${m.g}: home ${m.h} not in group`);
+      if (!g.has(m.a)) errors.push(`match ${m.g}: away ${m.a} not in group`);
+    }
+  }
 
   const rows = [];
   for (const p of (data.players || [])) {

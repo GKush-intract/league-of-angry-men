@@ -1,5 +1,5 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
-import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, FIX, GROUP_LETTERS } from './compute.js';
+import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS } from './compute.js';
 
 const state = { tab: 'standings', selected: null };
 let DATA, TABLES, PROJ, STAND, TEAM, POT;
@@ -125,34 +125,39 @@ function viewPlayers() {
 }
 
 // ---------- Fixtures ----------
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function fmtDate(d) {
+  if (!d) return 'DATE TBC';
+  const [y, m, day] = d.split('-');
+  return `${+day} ${(MONTHS[+m - 1] || '').toUpperCase()}`;
+}
 function viewSchedule() {
-  const mdNames = { 1: 'MATCHDAY 1', 2: 'MATCHDAY 2', 3: 'MATCHDAY 3' };
+  const ms = (DATA.matches || []).slice().sort(
+    (a, b) => (a.date || '').localeCompare(b.date || '') || a.g.localeCompare(b.g));
   let html = `<div style="margin:16px 2px 6px;">
     <div style="font-family:'Barlow Condensed';font-weight:800;font-size:26px;line-height:1;">FIXTURES &amp; RESULTS</div>
     <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Group stage · 12 groups · top 2 + 8 best 3rds advance to R32.</div></div>`;
-  for (const md of [1, 2, 3]) {
-    html += `<div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.14em;color:#7fd0a0;font-size:13px;margin:16px 2px 8px;">${mdNames[md]}</div>`;
-    for (const L of GROUP_LETTERS) {
-      FIX.forEach((pair, i) => {
-        if (Math.ceil((i + 1) / 2) !== md) return;
-        const ht = DATA.groups[L][pair[0]], at = DATA.groups[L][pair[1]];
-        const r = DATA.results[L + (i + 1)];
-        let score = 'v', scLabel = 'UPCOMING', col = '#5f7567', live = false;
-        if (r) {
-          const stt = r[2] || 'FT'; score = r[0] + ' – ' + r[1];
-          if (stt === 'LIVE') { live = true; col = '#b6ff3a'; scLabel = (r[3] || 0) + "'"; }
-          else { col = '#9fb3a6'; scLabel = 'FT'; }
-        }
-        html += `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:6px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;">
-          <span style="font-size:10px;font-weight:700;color:#5f7567;width:40px;flex:none;font-family:'Barlow Condensed';letter-spacing:.04em;">GRP ${L}</span>
-          <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:13px;font-weight:600;white-space:nowrap;">${ht[0]}</span><span style="font-size:16px;">${ht[2]}</span></div>
-          <span style="font-family:'JetBrains Mono';font-weight:800;font-size:14px;min-width:52px;text-align:center;color:#eef5ec;">${score}</span>
-          <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:16px;">${at[2]}</span><span style="font-size:13px;font-weight:600;white-space:nowrap;">${at[0]}</span></div>
-          <span style="font-size:10px;font-weight:800;width:36px;flex:none;text-align:right;letter-spacing:.04em;color:${col};${live ? 'animation:pulse 1.1s infinite;' : ''}">${scLabel}</span></div>`;
-      });
-    }
+  if (!ms.length) {
+    return html + `<div style="font-size:12px;color:#5f7567;text-align:center;margin-top:24px;">Fixtures syncing — check back shortly.</div>`;
   }
-  html += `<div style="font-size:11px;color:#5f7567;text-align:center;margin-top:14px;">Group tables &amp; standings use the official FIFA tables (auto-synced ~12h). Per-match results coming soon.</div>`;
+  let curDate = null;
+  for (const m of ms) {
+    if (m.date !== curDate) {
+      curDate = m.date;
+      html += `<div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.14em;color:#7fd0a0;font-size:13px;margin:16px 2px 8px;">${fmtDate(m.date)}</div>`;
+    }
+    const ht = TEAM[m.h] || { flag: '' }, at = TEAM[m.a] || { flag: '' };
+    const score = m.done ? `${m.hs} – ${m.as}` : 'v';
+    const scLabel = m.done ? 'FT' : 'UPCOMING';
+    const col = m.done ? '#9fb3a6' : '#5f7567';
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:6px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;">
+      <span style="font-size:10px;font-weight:700;color:#5f7567;width:40px;flex:none;font-family:'Barlow Condensed';letter-spacing:.04em;">GRP ${m.g}</span>
+      <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:13px;font-weight:600;white-space:nowrap;">${esc(m.h)}</span><span style="font-size:16px;">${ht.flag}</span></div>
+      <span style="font-family:'JetBrains Mono';font-weight:800;font-size:14px;min-width:52px;text-align:center;color:#eef5ec;">${score}</span>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:16px;">${at.flag}</span><span style="font-size:13px;font-weight:600;white-space:nowrap;">${esc(m.a)}</span></div>
+      <span style="font-size:10px;font-weight:800;width:36px;flex:none;text-align:right;letter-spacing:.04em;color:${col};">${scLabel}</span></div>`;
+  }
+  html += `<div style="font-size:11px;color:#5f7567;text-align:center;margin-top:14px;">Official fixtures &amp; results, auto-synced ~12h. Standings use the official FIFA tables.</div>`;
   return html;
 }
 

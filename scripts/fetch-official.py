@@ -40,10 +40,39 @@ def code(name):
         sys.exit(f"UNMAPPED TEAM NAME: {name!r} — add it to ALIAS in fetch-official.py")
     return ALIAS[n]
 
+def code_or_none(name):
+    n = re.sub(r'\(.*?\)', '', str(name))
+    n = re.sub(r'\[.*?\]', '', n).strip().lower()
+    return ALIAS.get(n)
+
 def num(x):
     s = str(x).replace('−', '-').replace('+', '')
     m = re.search(r'-?\d+', s)
     return int(m.group()) if m else 0
+
+def extract_matches(html, groups):
+    """Parse the schema.org football boxes into group-stage matches. Keeps only
+    matches where both teams map to the same group (skips knockout placeholders)."""
+    from lxml import html as LH
+    grp_of = {t[0]: L for L in 'ABCDEFGHIJKL' for t in groups[L]}
+    doc = LH.document_fromstring(html)
+    out = []
+    for b in doc.xpath('//*[contains(@class,"footballbox")]'):
+        def cell(c):
+            e = b.xpath(f'.//*[contains(@class,"{c}")]')
+            return re.sub(r'\s+', ' ', e[0].text_content()).strip() if e else ''
+        h, a = code_or_none(cell('fhome')), code_or_none(cell('faway'))
+        if not h or not a or grp_of.get(h) != grp_of.get(a):
+            continue
+        iso = re.search(r'\d{4}-\d{2}-\d{2}', b.text_content())
+        sc = re.match(r'\s*(\d+)\s*[–-]\s*(\d+)', cell('fscore'))
+        rec = {'g': grp_of[h], 'h': h, 'a': a, 'date': iso.group() if iso else None}
+        if sc:
+            rec['hs'], rec['as'], rec['done'] = int(sc.group(1)), int(sc.group(2)), True
+        else:
+            rec['done'] = False
+        out.append(rec)
+    return out
 
 def main():
     import pandas as pd, warnings
@@ -85,12 +114,18 @@ def main():
     if not (1 <= len(best) <= 8):
         sys.exit(f"unexpected bestThirds count: {len(best)} -> {best}")
 
+    matches = extract_matches(html, data['groups'])
+    if len(matches) < 60:
+        sys.exit(f"too few group matches parsed ({len(matches)}); aborting to avoid wiping fixtures")
+
     data['tables'] = {L: tables[L] for L in 'ABCDEFGHIJKL'}
     data['bestThirds'] = best
+    data['matches'] = matches
     data['meta']['lastUpdated'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     json.dump(data, open('data.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     open('data.json', 'a').write('\n')
-    print(f"OK: 12 official tables + {len(best)} best-thirds written -> {best}")
+    played = sum(1 for m in matches if m.get('done'))
+    print(f"OK: 12 tables, {len(best)} best-thirds, {len(matches)} matches ({played} played) -> thirds {best}")
 
 if __name__ == '__main__':
     main()

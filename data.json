@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-06-18T14:47:43Z",
+    "lastUpdated": "2026-06-18T14:57:21Z",
     "phase": 1,
     "entryFee": 1000
   },
@@ -2178,5 +2178,559 @@
     "ESP",
     "CZE",
     "ECU"
+  ],
+  "matches": [
+    {
+      "g": "A",
+      "h": "MEX",
+      "a": "RSA",
+      "date": "2026-06-11",
+      "hs": 2,
+      "as": 0,
+      "done": true
+    },
+    {
+      "g": "A",
+      "h": "KOR",
+      "a": "CZE",
+      "date": "2026-06-11",
+      "hs": 2,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "A",
+      "h": "CZE",
+      "a": "RSA",
+      "date": "2026-06-18",
+      "done": false
+    },
+    {
+      "g": "A",
+      "h": "MEX",
+      "a": "KOR",
+      "date": "2026-06-18",
+      "done": false
+    },
+    {
+      "g": "A",
+      "h": "CZE",
+      "a": "MEX",
+      "date": "2026-06-24",
+      "done": false
+    },
+    {
+      "g": "A",
+      "h": "RSA",
+      "a": "KOR",
+      "date": "2026-06-24",
+      "done": false
+    },
+    {
+      "g": "B",
+      "h": "CAN",
+      "a": "BIH",
+      "date": "2026-06-12",
+      "hs": 1,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "B",
+      "h": "QAT",
+      "a": "SUI",
+      "date": "2026-06-13",
+      "hs": 1,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "B",
+      "h": "SUI",
+      "a": "BIH",
+      "date": "2026-06-18",
+      "done": false
+    },
+    {
+      "g": "B",
+      "h": "CAN",
+      "a": "QAT",
+      "date": "2026-06-18",
+      "done": false
+    },
+    {
+      "g": "B",
+      "h": "SUI",
+      "a": "CAN",
+      "date": "2026-06-24",
+      "done": false
+    },
+    {
+      "g": "B",
+      "h": "BIH",
+      "a": "QAT",
+      "date": "2026-06-24",
+      "done": false
+    },
+    {
+      "g": "C",
+      "h": "BRA",
+      "a": "MAR",
+      "date": "2026-06-13",
+      "hs": 1,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "C",
+      "h": "HAI",
+      "a": "SCO",
+      "date": "2026-06-13",
+      "hs": 0,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "C",
+      "h": "SCO",
+      "a": "MAR",
+      "date": "2026-06-19",
+      "done": false
+    },
+    {
+      "g": "C",
+      "h": "BRA",
+      "a": "HAI",
+      "date": "2026-06-19",
+      "done": false
+    },
+    {
+      "g": "C",
+      "h": "SCO",
+      "a": "BRA",
+      "date": "2026-06-24",
+      "done": false
+    },
+    {
+      "g": "C",
+      "h": "MAR",
+      "a": "HAI",
+      "date": "2026-06-24",
+      "done": false
+    },
+    {
+      "g": "D",
+      "h": "USA",
+      "a": "PAR",
+      "date": "2026-06-12",
+      "hs": 4,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "D",
+      "h": "AUS",
+      "a": "TUR",
+      "date": "2026-06-13",
+      "hs": 2,
+      "as": 0,
+      "done": true
+    },
+    {
+      "g": "D",
+      "h": "USA",
+      "a": "AUS",
+      "date": "2026-06-19",
+      "done": false
+    },
+    {
+      "g": "D",
+      "h": "TUR",
+      "a": "PAR",
+      "date": "2026-06-19",
+      "done": false
+    },
+    {
+      "g": "D",
+      "h": "TUR",
+      "a": "USA",
+      "date": "2026-06-25",
+      "done": false
+    },
+    {
+      "g": "D",
+      "h": "PAR",
+      "a": "AUS",
+      "date": "2026-06-25",
+      "done": false
+    },
+    {
+      "g": "E",
+      "h": "GER",
+      "a": "CUW",
+      "date": "2026-06-14",
+      "hs": 7,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "E",
+      "h": "CIV",
+      "a": "ECU",
+      "date": "2026-06-14",
+      "hs": 1,
+      "as": 0,
+      "done": true
+    },
+    {
+      "g": "E",
+      "h": "GER",
+      "a": "CIV",
+      "date": "2026-06-20",
+      "done": false
+    },
+    {
+      "g": "E",
+      "h": "ECU",
+      "a": "CUW",
+      "date": "2026-06-20",
+      "done": false
+    },
+    {
+      "g": "E",
+      "h": "CUW",
+      "a": "CIV",
+      "date": "2026-06-25",
+      "done": false
+    },
+    {
+      "g": "E",
+      "h": "ECU",
+      "a": "GER",
+      "date": "2026-06-25",
+      "done": false
+    },
+    {
+      "g": "F",
+      "h": "NED",
+      "a": "JPN",
+      "date": "2026-06-14",
+      "hs": 2,
+      "as": 2,
+      "done": true
+    },
+    {
+      "g": "F",
+      "h": "SWE",
+      "a": "TUN",
+      "date": "2026-06-14",
+      "hs": 5,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "F",
+      "h": "NED",
+      "a": "SWE",
+      "date": "2026-06-20",
+      "done": false
+    },
+    {
+      "g": "F",
+      "h": "TUN",
+      "a": "JPN",
+      "date": "2026-06-20",
+      "done": false
+    },
+    {
+      "g": "F",
+      "h": "JPN",
+      "a": "SWE",
+      "date": "2026-06-25",
+      "done": false
+    },
+    {
+      "g": "F",
+      "h": "TUN",
+      "a": "NED",
+      "date": "2026-06-25",
+      "done": false
+    },
+    {
+      "g": "G",
+      "h": "BEL",
+      "a": "EGY",
+      "date": "2026-06-15",
+      "hs": 1,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "G",
+      "h": "IRN",
+      "a": "NZL",
+      "date": "2026-06-15",
+      "hs": 2,
+      "as": 2,
+      "done": true
+    },
+    {
+      "g": "G",
+      "h": "BEL",
+      "a": "IRN",
+      "date": "2026-06-21",
+      "done": false
+    },
+    {
+      "g": "G",
+      "h": "NZL",
+      "a": "EGY",
+      "date": "2026-06-21",
+      "done": false
+    },
+    {
+      "g": "G",
+      "h": "EGY",
+      "a": "IRN",
+      "date": "2026-06-26",
+      "done": false
+    },
+    {
+      "g": "G",
+      "h": "NZL",
+      "a": "BEL",
+      "date": "2026-06-26",
+      "done": false
+    },
+    {
+      "g": "H",
+      "h": "ESP",
+      "a": "CPV",
+      "date": "2026-06-15",
+      "hs": 0,
+      "as": 0,
+      "done": true
+    },
+    {
+      "g": "H",
+      "h": "KSA",
+      "a": "URU",
+      "date": "2026-06-15",
+      "hs": 1,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "H",
+      "h": "ESP",
+      "a": "KSA",
+      "date": "2026-06-21",
+      "done": false
+    },
+    {
+      "g": "H",
+      "h": "URU",
+      "a": "CPV",
+      "date": "2026-06-21",
+      "done": false
+    },
+    {
+      "g": "H",
+      "h": "CPV",
+      "a": "KSA",
+      "date": "2026-06-26",
+      "done": false
+    },
+    {
+      "g": "H",
+      "h": "URU",
+      "a": "ESP",
+      "date": "2026-06-26",
+      "done": false
+    },
+    {
+      "g": "I",
+      "h": "FRA",
+      "a": "SEN",
+      "date": "2026-06-16",
+      "hs": 3,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "I",
+      "h": "IRQ",
+      "a": "NOR",
+      "date": "2026-06-16",
+      "hs": 1,
+      "as": 4,
+      "done": true
+    },
+    {
+      "g": "I",
+      "h": "FRA",
+      "a": "IRQ",
+      "date": "2026-06-22",
+      "done": false
+    },
+    {
+      "g": "I",
+      "h": "NOR",
+      "a": "SEN",
+      "date": "2026-06-22",
+      "done": false
+    },
+    {
+      "g": "I",
+      "h": "NOR",
+      "a": "FRA",
+      "date": "2026-06-26",
+      "done": false
+    },
+    {
+      "g": "I",
+      "h": "SEN",
+      "a": "IRQ",
+      "date": "2026-06-26",
+      "done": false
+    },
+    {
+      "g": "J",
+      "h": "ARG",
+      "a": "ALG",
+      "date": "2026-06-16",
+      "hs": 3,
+      "as": 0,
+      "done": true
+    },
+    {
+      "g": "J",
+      "h": "AUT",
+      "a": "JOR",
+      "date": "2026-06-16",
+      "hs": 3,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "J",
+      "h": "ARG",
+      "a": "AUT",
+      "date": "2026-06-22",
+      "done": false
+    },
+    {
+      "g": "J",
+      "h": "JOR",
+      "a": "ALG",
+      "date": "2026-06-22",
+      "done": false
+    },
+    {
+      "g": "J",
+      "h": "ALG",
+      "a": "AUT",
+      "date": "2026-06-27",
+      "done": false
+    },
+    {
+      "g": "J",
+      "h": "JOR",
+      "a": "ARG",
+      "date": "2026-06-27",
+      "done": false
+    },
+    {
+      "g": "K",
+      "h": "POR",
+      "a": "COD",
+      "date": "2026-06-17",
+      "hs": 1,
+      "as": 1,
+      "done": true
+    },
+    {
+      "g": "K",
+      "h": "UZB",
+      "a": "COL",
+      "date": "2026-06-17",
+      "hs": 1,
+      "as": 3,
+      "done": true
+    },
+    {
+      "g": "K",
+      "h": "POR",
+      "a": "UZB",
+      "date": "2026-06-23",
+      "done": false
+    },
+    {
+      "g": "K",
+      "h": "COL",
+      "a": "COD",
+      "date": "2026-06-23",
+      "done": false
+    },
+    {
+      "g": "K",
+      "h": "COL",
+      "a": "POR",
+      "date": "2026-06-27",
+      "done": false
+    },
+    {
+      "g": "K",
+      "h": "COD",
+      "a": "UZB",
+      "date": "2026-06-27",
+      "done": false
+    },
+    {
+      "g": "L",
+      "h": "ENG",
+      "a": "CRO",
+      "date": "2026-06-17",
+      "hs": 4,
+      "as": 2,
+      "done": true
+    },
+    {
+      "g": "L",
+      "h": "GHA",
+      "a": "PAN",
+      "date": "2026-06-17",
+      "hs": 1,
+      "as": 0,
+      "done": true
+    },
+    {
+      "g": "L",
+      "h": "ENG",
+      "a": "GHA",
+      "date": "2026-06-23",
+      "done": false
+    },
+    {
+      "g": "L",
+      "h": "PAN",
+      "a": "CRO",
+      "date": "2026-06-23",
+      "done": false
+    },
+    {
+      "g": "L",
+      "h": "PAN",
+      "a": "ENG",
+      "date": "2026-06-27",
+      "done": false
+    },
+    {
+      "g": "L",
+      "h": "CRO",
+      "a": "GHA",
+      "date": "2026-06-27",
+      "done": false
+    }
   ]
 }
