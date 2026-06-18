@@ -73,7 +73,7 @@
     {
       "id": 9,
       "subject": "Task 9: Deploy to GitHub Pages + schedule routine",
-      "status": "in_progress",
+      "status": "completed",
       "blockedBy": [
         7,
         8
@@ -81,5 +81,5 @@
       "description": "Push repo, enable Pages, wire /schedule (every 12h) at routine/UPDATE.md. Coordinator + user.\n\n```json:metadata\n{\"files\":[],\"verifyCommand\":\"curl -I https://<user>.github.io/league-of-angry-men/\",\"acceptanceCriteria\":[\"repo pushed\",\"Pages serves root\",\"schedule created\"]}\n```"
     }
   ],
-  "lastUpdated": "2026-06-18T08:23:40.065212Z"
+  "lastUpdated": "2026-06-18T08:33:05.144534+00:00"
 }
