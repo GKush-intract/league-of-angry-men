@@ -23,6 +23,21 @@ Commit & push — Pages redeploys automatically. The 12-hour routine does this f
     node --test
     node scripts/validate-data.mjs
 
+## Deploy to GitHub Pages (when ready)
+
+    gh repo create league-of-angry-men --public --source=. --remote=origin --push
+    gh api -X POST repos/GKush-intract/league-of-angry-men/pages -f "source[branch]=main" -f "source[path]=/"
+
+Live at `https://GKush-intract.github.io/league-of-angry-men/` within a minute or two.
+
+## Schedule the 12-hour auto-update (after deploy)
+
+The updater is a scheduled cloud agent that follows `routine/UPDATE.md`. It is
+user-triggered (you run it in a Claude Code session, it is billed to you):
+
+    /schedule create a routine every 12 hours that follows routine/UPDATE.md in
+    this repo: fetch the latest WC 2026 group results, update data.json, commit and push.
+
 ## How scoring works
 
 - **q** — 1 pt per picked team currently projected to reach the Round of 32.
