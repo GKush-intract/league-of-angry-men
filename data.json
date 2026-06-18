@@ -1,0 +1,1597 @@
+{
+  "meta": {
+    "lastUpdated": "2026-06-18T00:00:00Z",
+    "phase": 1,
+    "entryFee": 1000
+  },
+  "groups": {
+    "A": [
+      [
+        "MEX",
+        "Mexico",
+        "🇲🇽"
+      ],
+      [
+        "KOR",
+        "South Korea",
+        "🇰🇷"
+      ],
+      [
+        "CZE",
+        "Czechia",
+        "🇨🇿"
+      ],
+      [
+        "RSA",
+        "South Africa",
+        "🇿🇦"
+      ]
+    ],
+    "B": [
+      [
+        "SUI",
+        "Switzerland",
+        "🇨🇭"
+      ],
+      [
+        "CAN",
+        "Canada",
+        "🇨🇦"
+      ],
+      [
+        "QAT",
+        "Qatar",
+        "🇶🇦"
+      ],
+      [
+        "BIH",
+        "Bosnia & Herzegovina",
+        "🇧🇦"
+      ]
+    ],
+    "C": [
+      [
+        "BRA",
+        "Brazil",
+        "🇧🇷"
+      ],
+      [
+        "MAR",
+        "Morocco",
+        "🇲🇦"
+      ],
+      [
+        "SCO",
+        "Scotland",
+        "🏴"
+      ],
+      [
+        "HAI",
+        "Haiti",
+        "🇭🇹"
+      ]
+    ],
+    "D": [
+      [
+        "USA",
+        "United States",
+        "🇺🇸"
+      ],
+      [
+        "TUR",
+        "Turkey",
+        "🇹🇷"
+      ],
+      [
+        "AUS",
+        "Australia",
+        "🇦🇺"
+      ],
+      [
+        "PAR",
+        "Paraguay",
+        "🇵🇾"
+      ]
+    ],
+    "E": [
+      [
+        "GER",
+        "Germany",
+        "🇩🇪"
+      ],
+      [
+        "ECU",
+        "Ecuador",
+        "🇪🇨"
+      ],
+      [
+        "CIV",
+        "Ivory Coast",
+        "🇨🇮"
+      ],
+      [
+        "CUW",
+        "Curaçao",
+        "🇨🇼"
+      ]
+    ],
+    "F": [
+      [
+        "NED",
+        "Netherlands",
+        "🇳🇱"
+      ],
+      [
+        "JPN",
+        "Japan",
+        "🇯🇵"
+      ],
+      [
+        "SWE",
+        "Sweden",
+        "🇸🇪"
+      ],
+      [
+        "TUN",
+        "Tunisia",
+        "🇹🇳"
+      ]
+    ],
+    "G": [
+      [
+        "BEL",
+        "Belgium",
+        "🇧🇪"
+      ],
+      [
+        "IRN",
+        "Iran",
+        "🇮🇷"
+      ],
+      [
+        "EGY",
+        "Egypt",
+        "🇪🇬"
+      ],
+      [
+        "NZL",
+        "New Zealand",
+        "🇳🇿"
+      ]
+    ],
+    "H": [
+      [
+        "ESP",
+        "Spain",
+        "🇪🇸"
+      ],
+      [
+        "URU",
+        "Uruguay",
+        "🇺🇾"
+      ],
+      [
+        "KSA",
+        "Saudi Arabia",
+        "🇸🇦"
+      ],
+      [
+        "CPV",
+        "Cape Verde",
+        "🇨🇻"
+      ]
+    ],
+    "I": [
+      [
+        "FRA",
+        "France",
+        "🇫🇷"
+      ],
+      [
+        "SEN",
+        "Senegal",
+        "🇸🇳"
+      ],
+      [
+        "NOR",
+        "Norway",
+        "🇳🇴"
+      ],
+      [
+        "IRQ",
+        "Iraq",
+        "🇮🇶"
+      ]
+    ],
+    "J": [
+      [
+        "ARG",
+        "Argentina",
+        "🇦🇷"
+      ],
+      [
+        "AUT",
+        "Austria",
+        "🇦🇹"
+      ],
+      [
+        "ALG",
+        "Algeria",
+        "🇩🇿"
+      ],
+      [
+        "JOR",
+        "Jordan",
+        "🇯🇴"
+      ]
+    ],
+    "K": [
+      [
+        "POR",
+        "Portugal",
+        "🇵🇹"
+      ],
+      [
+        "COL",
+        "Colombia",
+        "🇨🇴"
+      ],
+      [
+        "COD",
+        "Congo DR",
+        "🇨🇩"
+      ],
+      [
+        "UZB",
+        "Uzbekistan",
+        "🇺🇿"
+      ]
+    ],
+    "L": [
+      [
+        "ENG",
+        "England",
+        "🏴"
+      ],
+      [
+        "CRO",
+        "Croatia",
+        "🇭🇷"
+      ],
+      [
+        "PAN",
+        "Panama",
+        "🇵🇦"
+      ],
+      [
+        "GHA",
+        "Ghana",
+        "🇬🇭"
+      ]
+    ]
+  },
+  "results": {},
+  "previousRanks": {},
+  "players": [
+    {
+      "name": "Artet",
+      "nick": "",
+      "b": 0,
+      "q1": "POR",
+      "q2": "Erling Haaland",
+      "q3": "Emiliano Martínez",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "RSA"
+        ],
+        "B": [
+          "SUI",
+          "QAT"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU",
+          "KSA"
+        ],
+        "I": [
+          "FRA",
+          "SEN"
+        ],
+        "J": [
+          "ARG",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL",
+          "COD"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Banmanlang",
+      "nick": "",
+      "b": 0,
+      "q1": "GER",
+      "q2": "Harry Kane",
+      "q3": "Manuel Neuer",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "AUS"
+        ],
+        "E": [
+          "GER",
+          "ECU"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "EGY",
+          "NZL"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Banshan",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Ousmane Dembélé",
+      "q3": "David Raya",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "RSA"
+        ],
+        "B": [
+          "CAN",
+          "QAT"
+        ],
+        "C": [
+          "BRA",
+          "MAR"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Dale shylla",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Kylian Mbappé",
+      "q3": "Alisson",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "RSA"
+        ],
+        "B": [
+          "SUI",
+          "QAT"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Garrick Shanpru",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Lionel Messi",
+      "q3": "Emiliano Martínez",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "RSA"
+        ],
+        "B": [
+          "SUI",
+          "CAN",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR"
+        ],
+        "D": [
+          "TUR",
+          "AUS",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU",
+          "KSA"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Krishna",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Erling Haaland",
+      "q3": "Mike Maignan",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "AUS"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "PAN"
+        ]
+      }
+    },
+    {
+      "name": "Kushagra",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Kylian Mbappé",
+      "q3": "Unai Simón",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO"
+        ]
+      }
+    },
+    {
+      "name": "Luke Shanpru",
+      "nick": "",
+      "b": 0,
+      "q1": "POR",
+      "q2": "Kylian Mbappé",
+      "q3": "Unai Simón",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT"
+        ],
+        "K": [
+          "POR",
+          "COL",
+          "UZB"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Manav",
+      "nick": "",
+      "b": 0,
+      "q1": "BRA",
+      "q2": "Harry Kane",
+      "q3": "Diogo Costa",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "AUS"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN"
+        ],
+        "H": [
+          "ESP",
+          "URU",
+          "KSA"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Mohit Agarwal",
+      "nick": "",
+      "b": 0,
+      "q1": "FRA",
+      "q2": "Kylian Mbappé",
+      "q3": "Emiliano Martínez",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "RSA"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Mohit Ghune",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Lamine Yamal",
+      "q3": "Mike Maignan",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Omargh Lanong",
+      "nick": "",
+      "b": 0,
+      "q1": "BRA",
+      "q2": "Vinícius Jr",
+      "q3": "Manuel Neuer",
+      "picks": {
+        "A": [
+          "MEX",
+          "RSA"
+        ],
+        "B": [
+          "SUI",
+          "QAT"
+        ],
+        "C": [
+          "BRA",
+          "MAR"
+        ],
+        "D": [
+          "USA",
+          "TUR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU",
+          "KSA"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "JOR"
+        ],
+        "K": [
+          "POR",
+          "COL",
+          "COD"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Prasoon Chaturvedi",
+      "nick": "",
+      "b": 0,
+      "q1": "FRA",
+      "q2": "Kylian Mbappé",
+      "q3": "Emiliano Martínez",
+      "picks": {
+        "A": [
+          "MEX",
+          "CZE",
+          "RSA"
+        ],
+        "B": [
+          "CAN",
+          "QAT",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR"
+        ],
+        "E": [
+          "GER",
+          "ECU"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "NOR",
+          "IRQ"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "JOR"
+        ],
+        "K": [
+          "POR",
+          "COL",
+          "COD"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Pynk",
+      "nick": "",
+      "b": 0,
+      "q1": "POR",
+      "q2": "Harry Kane",
+      "q3": "Mike Maignan",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU",
+          "CPV"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO"
+        ]
+      }
+    },
+    {
+      "name": "Saket",
+      "nick": "",
+      "b": 0,
+      "q1": "FRA",
+      "q2": "Harry Kane",
+      "q3": "Alisson Becker",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN",
+          "QAT"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "AUS"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO"
+        ]
+      }
+    },
+    {
+      "name": "Sangam",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Harry Kane",
+      "q3": "Unai Simón",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "AUS"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Sanjog",
+      "nick": "",
+      "b": 0,
+      "q1": "POR",
+      "q2": "Kylian Mbappé",
+      "q3": "Diogo Costa",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO"
+        ]
+      }
+    },
+    {
+      "name": "Shivam Datta",
+      "nick": "",
+      "b": 0,
+      "q1": "BRA",
+      "q2": "Harry Kane",
+      "q3": "Alisson Becker",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN",
+          "BIH"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN"
+        ],
+        "G": [
+          "BEL",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL",
+          "COD"
+        ],
+        "L": [
+          "ENG",
+          "CRO",
+          "GHA"
+        ]
+      }
+    },
+    {
+      "name": "Vaibhav Gupta",
+      "nick": "",
+      "b": 0,
+      "q1": "ESP",
+      "q2": "Kylian Mbappé",
+      "q3": "Unai Simón",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU",
+          "KSA"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COL"
+        ],
+        "L": [
+          "ENG",
+          "CRO"
+        ]
+      }
+    },
+    {
+      "name": "Zac",
+      "nick": "",
+      "b": 0,
+      "q1": "POR",
+      "q2": "Cristiano Ronaldo",
+      "q3": "Diogo Costa",
+      "picks": {
+        "A": [
+          "MEX",
+          "KOR",
+          "CZE"
+        ],
+        "B": [
+          "SUI",
+          "CAN"
+        ],
+        "C": [
+          "BRA",
+          "MAR",
+          "SCO"
+        ],
+        "D": [
+          "USA",
+          "TUR",
+          "PAR"
+        ],
+        "E": [
+          "GER",
+          "ECU",
+          "CIV"
+        ],
+        "F": [
+          "NED",
+          "JPN",
+          "SWE"
+        ],
+        "G": [
+          "BEL",
+          "IRN",
+          "EGY"
+        ],
+        "H": [
+          "ESP",
+          "URU"
+        ],
+        "I": [
+          "FRA",
+          "SEN",
+          "NOR"
+        ],
+        "J": [
+          "ARG",
+          "AUT",
+          "ALG"
+        ],
+        "K": [
+          "POR",
+          "COD"
+        ],
+        "L": [
+          "ENG",
+          "CRO"
+        ]
+      }
+    }
+  ]
+}
