@@ -52,16 +52,27 @@ export function projectedQualifiers(tables) {
   return { qualified, top2, started, groupQ, best8 };
 }
 
+// Groups where a player's picks EXACTLY equal that group's projected qualifiers
+// (the 2/2 or 3/3 group bonus). Returns a Set of group letters, each worth +2.
+export function bonusGroups(player, proj) {
+  const out = new Set();
+  for (const L of GROUP_LETTERS) {
+    const picks = (player.picks && player.picks[L]) || [];
+    const actual = proj.groupQ[L] || [];
+    if (picks.length > 0 && picks.length === actual.length &&
+        picks.every(c => actual.includes(c))) out.add(L);
+  }
+  return out;
+}
+
 // Score one player's Phase 1. picks: {A:[codes],...}. proj from projectedQualifiers.
 export function scorePlayer(player, proj) {
-  let q = 0, g = 0;
+  let q = 0;
   for (const L of GROUP_LETTERS) {
     const picks = (player.picks && player.picks[L]) || [];
     for (const c of picks) if (proj.qualified.has(c)) q++;
-    const actual = proj.groupQ[L] || [];
-    if (picks.length > 0 && picks.length === actual.length &&
-        picks.every(c => actual.includes(c))) g += 2;
   }
+  const g = bonusGroups(player, proj).size * 2;
   const b = player.b || 0;
   return { q, g, b, total: q + g + b };
 }

@@ -1,5 +1,5 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
-import { computeAllTables, projectedQualifiers, buildStandings, FIX, GROUP_LETTERS } from './compute.js';
+import { computeAllTables, projectedQualifiers, buildStandings, bonusGroups, FIX, GROUP_LETTERS } from './compute.js';
 
 const state = { tab: 'standings', selected: null };
 let DATA, TABLES, PROJ, STAND, TEAM, POT;
@@ -158,17 +158,19 @@ function viewSchedule() {
 function viewGroups() {
   let html = `<div style="margin:16px 2px 12px;">
     <div style="font-family:'Barlow Condensed';font-weight:800;font-size:26px;line-height:1;">GROUP STAGE</div>
-    <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Live tables. Green = top 2 (in). Gold = 3rd inside the best-8.</div></div>`;
+    <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Live tables. Green = top 2 (in). Gold = 3rd-placed team currently qualifying (best-8).</div></div>`;
   for (const L of GROUP_LETTERS) {
     const st = TABLES[L];
     const thirdIn = PROJ.best8.has(L);
     const rows = st.map((s, i) => {
-      const rowBg = i < 2 ? 'rgba(182,255,58,.06)' : 'transparent';
+      const qual3 = i === 2 && thirdIn;
+      const rowBg = i < 2 ? 'rgba(182,255,58,.06)' : (qual3 ? 'rgba(255,206,58,.09)' : 'transparent');
       const posColor = i < 2 ? '#b6ff3a' : (i === 2 ? (thirdIn ? '#ffce3a' : '#7a8a7f') : '#5f7567');
       const gd = (s.gd > 0 ? '+' : '') + s.gd;
+      const tag = qual3 ? `<span style="font-family:'Barlow Condensed';font-weight:700;font-size:9px;letter-spacing:.06em;color:#ffce3a;background:rgba(255,206,58,.16);border:1px solid #6b5a1e;border-radius:5px;padding:1px 5px;flex:none;">R32</span>` : '';
       return `<div style="display:flex;align-items:center;padding:7px 13px;background:${rowBg};">
         <span style="width:20px;font-family:'JetBrains Mono';font-weight:800;font-size:12px;color:${posColor};">${i + 1}</span>
-        <span style="flex:1;display:flex;align-items:center;gap:8px;min-width:0;"><span style="font-size:16px;">${s.flag}</span><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.name)}</span></span>
+        <span style="flex:1;display:flex;align-items:center;gap:8px;min-width:0;"><span style="font-size:16px;">${s.flag}</span><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.name)}</span>${tag}</span>
         <span style="width:22px;text-align:center;font-family:'JetBrains Mono';font-size:12px;color:#9fb3a6;">${s.p}</span>
         <span style="width:32px;text-align:center;font-family:'JetBrains Mono';font-size:12px;color:#9fb3a6;">${gd}</span>
         <span style="width:26px;text-align:center;font-family:'JetBrains Mono';font-weight:800;font-size:13px;color:#eef5ec;">${s.pts}</span></div>`;
@@ -225,8 +227,10 @@ function renderOverlay() {
   if (!p) { o.innerHTML = ''; return; }
   const [rb, rf] = medal(p.rank);
   const w = TEAM[p.q1] || { flag: '', name: p.q1 };
+  const bonusSet = bonusGroups(p, PROJ);
   const picksRows = GROUP_LETTERS.map(L => {
     const picks = (p.picks?.[L]) || [];
+    const isBonus = bonusSet.has(L);
     const chips = picks.map(code => {
       const t = TEAM[code] || { flag: '', name: code };
       const inQ = PROJ.groupQ[L]?.includes(code);
@@ -235,9 +239,10 @@ function renderOverlay() {
       const bg = inQ ? 'rgba(182,255,58,.1)' : (started ? 'rgba(255,122,106,.1)' : 'rgba(255,255,255,.04)');
       return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;background:${bg};color:${color};border:1px solid ${color};"><span style="font-size:14px;">${t.flag}</span>${esc(code)}</span>`;
     }).join('');
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #122a1c;">
-      <span style="width:50px;flex:none;font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#7fd0a0;">GRP ${L}</span>
-      <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap;">${chips}</div></div>`;
+    const badge = isBonus ? `<span style="font-family:'JetBrains Mono';font-weight:800;font-size:11px;color:#ffce3a;background:rgba(255,206,58,.16);border:1px solid #6b5a1e;border-radius:6px;padding:2px 6px;flex:none;">+2</span>` : '';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px ${isBonus ? '8px' : '0'};margin:${isBonus ? '0 -2px' : '0'};border-bottom:1px solid #122a1c;${isBonus ? 'background:rgba(255,206,58,.06);border-radius:8px;' : ''}">
+      <span style="width:50px;flex:none;font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:${isBonus ? '#ffce3a' : '#7fd0a0'};">GRP ${L}</span>
+      <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap;">${chips}</div>${badge}</div>`;
   }).join('');
   const tile = (lbl, val) => `<div style="flex:1;padding:10px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;text-align:center;"><div style="font-size:9px;letter-spacing:.1em;color:#5f7567;font-weight:700;">${lbl}</div><div style="font-family:'JetBrains Mono';font-weight:800;font-size:18px;color:#eef5ec;margin-top:3px;">${val}</div></div>`;
   const bonus = (q, lbl, ans) => `<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;margin-bottom:7px;"><span style="font-family:'JetBrains Mono';font-weight:800;color:#ffce3a;font-size:13px;width:26px;">${q}</span><span style="flex:1;font-size:11px;color:#5f7567;">${lbl}</span><span style="font-family:'Barlow Condensed';font-weight:700;font-size:15px;">${esc(ans)}</span></div>`;
@@ -256,7 +261,7 @@ function renderOverlay() {
         </div>
         <div style="display:flex;gap:8px;margin-top:16px;">${tile('QUALIFIERS', p.q)}${tile('GROUP BONUS', p.g)}${tile('Q1–Q3', p.b)}</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:20px 0 4px;letter-spacing:.03em;">PHASE 1 · R32 PICKS</div>
-        <div style="font-size:11px;color:#5f7567;margin-bottom:8px;">Teams this one backed to reach the Round of 32. Green = on track, red = trailing, grey = not started.</div>
+        <div style="font-size:11px;color:#5f7567;margin-bottom:8px;">Teams backed to reach the Round of 32. Green = on track, red = trailing, grey = not started. <b style="color:#ffce3a;">Gold +2</b> = every qualifier from that group nailed (group bonus).</div>
         ${picksRows}
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 8px;letter-spacing:.03em;">BONUS QUESTIONS</div>
         ${bonus('Q1', 'WORLD CUP WINNER', (w.flag + ' ' + (w.name || p.q1)))}

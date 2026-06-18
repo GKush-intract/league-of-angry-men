@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   computeGroupTable, computeAllTables, projectedQualifiers,
-  scorePlayer, buildStandings, GROUP_LETTERS,
+  scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -71,6 +71,14 @@ test('scorePlayer: partial group gives q but no g', () => {
   const s = scorePlayer({ picks: { A: ['MEX', 'BRA'], C: ['BRA', 'MAR'] }, b: 0 }, projStub);
   assert.equal(s.q, 4);   // MEX, BRA(A), BRA(C), MAR
   assert.equal(s.g, 0);
+});
+
+test('bonusGroups: returns exactly the groups with a full qualifier match', () => {
+  const bg = bonusGroups({ picks: { A: ['MEX', 'KOR'], C: ['BRA', 'MAR', 'SCO'], B: ['MEX'] } }, projStub);
+  assert.deepEqual([...bg].sort(), ['A', 'C']);   // B has no groupQ -> no bonus
+  // and its size*2 matches scorePlayer's g
+  const s = scorePlayer({ picks: { A: ['MEX', 'KOR'], C: ['BRA', 'MAR', 'SCO'] }, b: 0 }, projStub);
+  assert.equal(s.g, bg.size * 2 - 0);
 });
 
 test('buildStandings: sorts and computes movement', () => {
