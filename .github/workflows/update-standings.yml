@@ -1,0 +1,57 @@
+name: Update standings
+
+# Refresh the official FIFA tables every 12h (free; runs on GitHub's runners which
+# have internet access, unlike the egress-restricted cloud agent). Also runnable
+# on demand from the Actions tab.
+on:
+  schedule:
+    - cron: '0 */12 * * *'   # 00:00 and 12:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-standings
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python deps
+        run: pip install pandas lxml
+
+      - name: Snapshot ranks (movement baseline)
+        run: node scripts/snapshot-ranks.mjs
+
+      - name: Fetch official tables from Wikipedia
+        run: python3 scripts/fetch-official.py
+
+      - name: Run tests
+        run: node --test
+
+      - name: Validate data
+        run: node scripts/validate-data.mjs
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet data.json; then
+            echo "No changes to data.json"
+          else
+            git add data.json
+            git commit -m "chore: update official tables $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
