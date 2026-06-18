@@ -1,0 +1,24 @@
+{
+  "planPath": "docs/superpowers/plans/2026-06-18-wc2026-predictor.md",
+  "tasks": [
+    { "id": 1, "subject": "Task 1: Scaffold repo + author data.json", "status": "pending",
+      "description": "Author data.json (real 2026 draw, 20 players w/ transcribed R32 picks + bonus, empty results) + .nojekyll/.gitignore/README. COORDINATOR-EXECUTED (needs pick screenshots).\n\n```json:metadata\n{\"files\":[\"data.json\",\".nojekyll\",\".gitignore\",\"README.md\"],\"verifyCommand\":\"node -e \\\"JSON.parse(require('fs').readFileSync('data.json'))\\\"\",\"acceptanceCriteria\":[\"valid JSON\",\"12 groups x4\",\"20 players\",\"pick codes belong to group\"]}\n```" },
+    { "id": 2, "subject": "Task 2: compute.js group tables + tests", "status": "pending", "blockedBy": [1],
+      "description": "Pure computeGroupTable/computeAllTables with node:test.\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"standings correct\",\"sort pts>gd>gf>name\",\"LIVE like FT\"]}\n```" },
+    { "id": 3, "subject": "Task 3: compute.js projected qualifiers + tests", "status": "pending", "blockedBy": [2],
+      "description": "projectedQualifiers (top-2 + 8 best thirds) -> {qualified,top2,started,groupQ,best8}.\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"qualified size 32\",\"groupQ 2 or 3\",\"thirds ranked\"]}\n```" },
+    { "id": 4, "subject": "Task 4: compute.js scoring + standings + tests", "status": "pending", "blockedBy": [3],
+      "description": "scorePlayer (q/g/total) + buildStandings (rank, mv).\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"q counts qualified\",\"g +2 exact group\",\"sort total>q>name\",\"mv=prev-rank\"]}\n```" },
+    { "id": 5, "subject": "Task 5: Data validation script + pick audit", "status": "pending", "blockedBy": [1],
+      "description": "scripts/validate-data.mjs + test; coordinator review gate with organizer.\n\n```json:metadata\n{\"files\":[\"scripts/validate-data.mjs\",\"test/validate.test.mjs\",\"data.json\"],\"verifyCommand\":\"node --test test/validate.test.mjs\",\"acceptanceCriteria\":[\"errors on bad structure\",\"warns total!=32\",\"per-player audit\"]}\n```" },
+    { "id": 6, "subject": "Task 6: index.html + app.js shell, standings, players, overlay", "status": "pending", "blockedBy": [4],
+      "description": "App shell, nav, Standings + Players tabs, overlay. COORDINATOR-EXECUTED (needs handoff).\n\n```json:metadata\n{\"files\":[\"index.html\",\"app.js\"],\"verifyCommand\":\"python3 -m http.server 8000\",\"acceptanceCriteria\":[\"derives from data.json\",\"leader/tags/bars/movement\",\"overlay open/close\",\"nav switch\"]}\n```" },
+    { "id": 7, "subject": "Task 7: app.js fixtures, groups, rules tabs", "status": "pending", "blockedBy": [6],
+      "description": "Replace placeholder viewSchedule/viewGroups/viewRules with full renderers.\n\n```json:metadata\n{\"files\":[\"app.js\"],\"verifyCommand\":\"python3 -m http.server 8000\",\"acceptanceCriteria\":[\"fixtures by matchday\",\"12 group cards highlight\",\"rules prize+phases\"]}\n```" },
+    { "id": 8, "subject": "Task 8: 12-hour update routine UPDATE.md", "status": "pending", "blockedBy": [5],
+      "description": "routine/UPDATE.md: snapshot ranks, fetch results, update + lastUpdated, validate, push; forbids scoring edits.\n\n```json:metadata\n{\"files\":[\"routine/UPDATE.md\"],\"verifyCommand\":\"node --test && node scripts/validate-data.mjs\",\"acceptanceCriteria\":[\"update flow documented\",\"forbids hand-tally\"]}\n```" },
+    { "id": 9, "subject": "Task 9: Deploy to GitHub Pages + schedule routine", "status": "pending", "blockedBy": [7, 8],
+      "description": "Push repo, enable Pages, wire /schedule (every 12h) at routine/UPDATE.md. Coordinator + user.\n\n```json:metadata\n{\"files\":[],\"verifyCommand\":\"curl -I https://<user>.github.io/league-of-angry-men/\",\"acceptanceCriteria\":[\"repo pushed\",\"Pages serves root\",\"schedule created\"]}\n```" }
+  ],
+  "lastUpdated": "2026-06-18T00:00:00Z"
+}
