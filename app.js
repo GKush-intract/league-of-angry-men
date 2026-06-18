@@ -196,8 +196,7 @@ function viewRules() {
   <div style="padding:15px;background:linear-gradient(150deg,#15351f,#0c1f14);border:1px solid #2c5a38;border-radius:16px;margin-bottom:14px;">
     <div style="font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.16em;color:#ffce3a;">THE PRIZE POOL</div>
     <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px;"><span style="font-family:'JetBrains Mono';font-weight:800;font-size:34px;color:#ffce3a;">${POT}</span><span style="font-size:12px;color:#9fb3a6;">and counting</span></div>
-    <div style="font-size:13px;color:#cfe0d4;margin-top:8px;line-height:1.55;">Entry fee <b style="color:#fff;">₹1,000</b> per head. <b style="color:#fff;">100%</b> of the money goes into the pot — nothing skimmed. Prize split gets announced once registration closes and the final headcount is locked.</div>
-    <div style="margin-top:11px;padding-top:11px;border-top:1px solid #2c5a38;font-size:12px;color:#9fb3a6;">Send entry to <b style="color:#b6ff3a;font-family:'JetBrains Mono';">pynkmenlyndem@okaxis</b> — confirm the name reads <b style="color:#fff;">Pynkmenlang</b> before you send.</div></div>
+    <div style="font-size:13px;color:#cfe0d4;margin-top:8px;line-height:1.55;">Prize split gets announced once registration closes and the final headcount is locked.</div></div>
   <div style="font-size:13px;color:#cfe0d4;line-height:1.55;padding:0 4px 12px;"><b style="color:#fff;">48 teams · 12 groups of 4.</b> Top 2 from each group plus the 8 best 3rd-placed teams go through to the Round of 32. Predict it across 3 phases, max <b style="color:#b6ff3a;">200 points</b>.</div>
   ${phase('PHASE 1', 'Before group stage', 71,
     row('Correct team into Round of 32 <span style="color:#5f7567;">(position doesn\'t matter)</span>', '1 ea', '32') +
