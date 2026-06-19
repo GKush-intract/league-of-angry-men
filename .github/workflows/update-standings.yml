@@ -5,7 +5,7 @@ name: Update standings
 # on demand from the Actions tab.
 on:
   schedule:
-    - cron: '0 */12 * * *'   # 00:00 and 12:00 UTC
+    - cron: '30 5 * * *'   # 11AM IST
   workflow_dispatch:
 
 permissions:
