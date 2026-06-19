@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-06-19T02:47:30Z",
+    "lastUpdated": "2026-06-19T06:07:35Z",
     "phase": 1,
     "entryFee": 1000
   },
@@ -273,25 +273,25 @@
   "results": {},
   "previousRanks": {
     "Manav": 1,
-    "Sangam": 2,
-    "Saket": 3,
-    "Shivam Datta": 4,
-    "Banmanlang": 5,
-    "Artet": 6,
-    "Luke Shanpru": 7,
-    "Omargh Lanong": 8,
+    "Shivam Datta": 2,
+    "Banmanlang": 3,
+    "Sangam": 4,
+    "Kushagra": 5,
+    "Luke Shanpru": 6,
+    "Saket": 7,
+    "Sanjog": 8,
     "Vaibhav Gupta": 9,
     "Zac": 10,
-    "Krishna": 11,
-    "Mohit Ghune": 12,
+    "Artet": 11,
+    "Omargh Lanong": 12,
     "Pynk": 13,
-    "Kushagra": 14,
-    "Prasoon Chaturvedi": 15,
-    "Sanjog": 16,
-    "Banshan": 17,
-    "Dale shylla": 18,
-    "Mohit Agarwal": 19,
-    "Garrick Shanpru": 20
+    "Krishna": 14,
+    "Mohit Ghune": 15,
+    "Garrick Shanpru": 16,
+    "Prasoon Chaturvedi": 17,
+    "Mohit Agarwal": 18,
+    "Banshan": 19,
+    "Dale shylla": 20
   },
   "players": [
     {
@@ -1619,24 +1619,24 @@
     "A": [
       {
         "code": "MEX",
-        "p": 1,
-        "w": 1,
+        "p": 2,
+        "w": 2,
         "d": 0,
         "l": 0,
-        "gf": 2,
+        "gf": 3,
         "ga": 0,
-        "gd": 2,
-        "pts": 3
+        "gd": 3,
+        "pts": 6
       },
       {
         "code": "KOR",
-        "p": 1,
+        "p": 2,
         "w": 1,
         "d": 0,
-        "l": 0,
+        "l": 1,
         "gf": 2,
-        "ga": 1,
-        "gd": 1,
+        "ga": 2,
+        "gd": 0,
         "pts": 3
       },
       {
@@ -2212,7 +2212,9 @@
       "h": "MEX",
       "a": "KOR",
       "date": "2026-06-18",
-      "done": false
+      "hs": 1,
+      "as": 0,
+      "done": true
     },
     {
       "g": "A",
