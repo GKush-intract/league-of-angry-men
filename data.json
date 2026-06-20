@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-06-20T06:26:35Z",
+    "lastUpdated": "2026-06-20T08:33:50Z",
     "phase": 1,
     "entryFee": 1000
   },
@@ -273,25 +273,25 @@
   "results": {},
   "previousRanks": {
     "Manav": 1,
-    "Shivam Datta": 2,
-    "Banmanlang": 3,
-    "Sangam": 4,
-    "Kushagra": 5,
-    "Luke Shanpru": 6,
-    "Saket": 7,
-    "Sanjog": 8,
-    "Vaibhav Gupta": 9,
-    "Zac": 10,
-    "Artet": 11,
-    "Omargh Lanong": 12,
-    "Pynk": 13,
-    "Krishna": 14,
-    "Mohit Ghune": 15,
+    "Banmanlang": 2,
+    "Luke Shanpru": 3,
+    "Shivam Datta": 4,
+    "Sangam": 5,
+    "Kushagra": 6,
+    "Sanjog": 7,
+    "Vaibhav Gupta": 8,
+    "Zac": 9,
+    "Artet": 10,
+    "Pynk": 11,
+    "Saket": 12,
+    "Mohit Ghune": 13,
+    "Omargh Lanong": 14,
+    "Prasoon Chaturvedi": 15,
     "Garrick Shanpru": 16,
-    "Prasoon Chaturvedi": 17,
-    "Mohit Agarwal": 18,
-    "Banshan": 19,
-    "Dale shylla": 20
+    "Krishna": 17,
+    "Dale shylla": 18,
+    "Mohit Agarwal": 19,
+    "Banshan": 20
   },
   "players": [
     {
