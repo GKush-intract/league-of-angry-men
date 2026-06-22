@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-06-21T09:09:54Z",
+    "lastUpdated": "2026-06-22T04:56:29Z",
     "phase": 1,
     "entryFee": 1000
   },
@@ -273,25 +273,25 @@
   "results": {},
   "previousRanks": {
     "Manav": 1,
-    "Banmanlang": 2,
+    "Sangam": 2,
     "Luke Shanpru": 3,
     "Shivam Datta": 4,
-    "Sangam": 5,
-    "Kushagra": 6,
-    "Sanjog": 7,
-    "Vaibhav Gupta": 8,
-    "Zac": 9,
-    "Artet": 10,
-    "Pynk": 11,
-    "Saket": 12,
-    "Mohit Ghune": 13,
-    "Omargh Lanong": 14,
-    "Prasoon Chaturvedi": 15,
-    "Garrick Shanpru": 16,
-    "Krishna": 17,
-    "Dale shylla": 18,
-    "Mohit Agarwal": 19,
-    "Banshan": 20
+    "Vaibhav Gupta": 5,
+    "Zac": 6,
+    "Banmanlang": 7,
+    "Mohit Ghune": 8,
+    "Artet": 9,
+    "Krishna": 10,
+    "Saket": 11,
+    "Omargh Lanong": 12,
+    "Pynk": 13,
+    "Kushagra": 14,
+    "Mohit Agarwal": 15,
+    "Sanjog": 16,
+    "Prasoon Chaturvedi": 17,
+    "Banshan": 18,
+    "Dale shylla": 19,
+    "Garrick Shanpru": 20
   },
   "players": [
     {
@@ -1894,93 +1894,93 @@
     ],
     "G": [
       {
-        "code": "NZL",
-        "p": 1,
-        "w": 0,
+        "code": "EGY",
+        "p": 2,
+        "w": 1,
         "d": 1,
         "l": 0,
-        "gf": 2,
+        "gf": 4,
         "ga": 2,
-        "gd": 0,
-        "pts": 1
+        "gd": 2,
+        "pts": 4
       },
       {
         "code": "IRN",
-        "p": 1,
+        "p": 2,
         "w": 0,
-        "d": 1,
+        "d": 2,
         "l": 0,
         "gf": 2,
         "ga": 2,
         "gd": 0,
-        "pts": 1
+        "pts": 2
       },
       {
         "code": "BEL",
-        "p": 1,
+        "p": 2,
         "w": 0,
-        "d": 1,
+        "d": 2,
         "l": 0,
         "gf": 1,
         "ga": 1,
         "gd": 0,
-        "pts": 1
+        "pts": 2
       },
       {
-        "code": "EGY",
-        "p": 1,
+        "code": "NZL",
+        "p": 2,
         "w": 0,
         "d": 1,
-        "l": 0,
-        "gf": 1,
-        "ga": 1,
-        "gd": 0,
+        "l": 1,
+        "gf": 3,
+        "ga": 5,
+        "gd": -2,
         "pts": 1
       }
     ],
     "H": [
       {
-        "code": "URU",
-        "p": 1,
-        "w": 0,
-        "d": 1,
-        "l": 0,
-        "gf": 1,
-        "ga": 1,
-        "gd": 0,
-        "pts": 1
-      },
-      {
-        "code": "KSA",
-        "p": 1,
-        "w": 0,
-        "d": 1,
-        "l": 0,
-        "gf": 1,
-        "ga": 1,
-        "gd": 0,
-        "pts": 1
-      },
-      {
         "code": "ESP",
-        "p": 1,
-        "w": 0,
+        "p": 2,
+        "w": 1,
         "d": 1,
         "l": 0,
-        "gf": 0,
+        "gf": 4,
         "ga": 0,
+        "gd": 4,
+        "pts": 4
+      },
+      {
+        "code": "URU",
+        "p": 2,
+        "w": 0,
+        "d": 2,
+        "l": 0,
+        "gf": 3,
+        "ga": 3,
         "gd": 0,
-        "pts": 1
+        "pts": 2
       },
       {
         "code": "CPV",
-        "p": 1,
+        "p": 2,
+        "w": 0,
+        "d": 2,
+        "l": 0,
+        "gf": 2,
+        "ga": 2,
+        "gd": 0,
+        "pts": 2
+      },
+      {
+        "code": "KSA",
+        "p": 2,
         "w": 0,
         "d": 1,
-        "l": 0,
-        "gf": 0,
-        "ga": 0,
-        "gd": 0,
+        "l": 1,
+        "gf": 1,
+        "ga": 5,
+        "gd": -4,
         "pts": 1
       }
     ],
@@ -2173,9 +2173,9 @@
     "SWE",
     "SCO",
     "PAR",
+    "CPV",
     "BEL",
     "POR",
-    "ESP",
     "CZE",
     "ECU"
   ],
@@ -2503,14 +2503,18 @@
       "h": "BEL",
       "a": "IRN",
       "date": "2026-06-21",
-      "done": false
+      "hs": 0,
+      "as": 0,
+      "done": true
     },
     {
       "g": "G",
       "h": "NZL",
       "a": "EGY",
       "date": "2026-06-21",
-      "done": false
+      "hs": 1,
+      "as": 3,
+      "done": true
     },
     {
       "g": "G",
@@ -2549,14 +2553,18 @@
       "h": "ESP",
       "a": "KSA",
       "date": "2026-06-21",
-      "done": false
+      "hs": 4,
+      "as": 0,
+      "done": true
     },
     {
       "g": "H",
       "h": "URU",
       "a": "CPV",
       "date": "2026-06-21",
-      "done": false
+      "hs": 2,
+      "as": 2,
+      "done": true
     },
     {
       "g": "H",
