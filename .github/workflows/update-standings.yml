@@ -4,8 +4,6 @@ name: Update standings
 # have internet access, unlike the egress-restricted cloud agent). Also runnable
 # on demand from the Actions tab.
 on:
-  schedule:
-    - cron: '30 5 * * *'   # 11AM IST
   workflow_dispatch:
 
 permissions:
