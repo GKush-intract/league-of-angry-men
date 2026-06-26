@@ -4,7 +4,7 @@ import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
   seedTeams, r32Pairings, regions, seedIndex,
-  aggregateBrackets,
+  aggregateBrackets, regionTeams,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -169,6 +169,12 @@ test('r32Pairings is classic 1-v-32', () => {
 
 test('regions feed from consecutive r32 matches', () => {
   assert.deepEqual(regions().map(r => r.m), [[0,1],[2,3],[4,5],[6,7],[8,9],[10,11],[12,13],[14,15]]);
+});
+
+test('regionTeams returns the 4 R32 participants of a region', () => {
+  const r32 = [{ a: { code: 'A' }, b: { code: 'B' } }, { a: { code: 'C' }, b: { code: 'D' } }];
+  const reg = { id: 0, m: [0, 1] };
+  assert.deepEqual(regionTeams(reg, r32).map(t => t.code), ['A', 'B', 'C', 'D']);
 });
 
 test('seedIndex maps code to seed position', () => {

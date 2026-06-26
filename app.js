@@ -1,5 +1,5 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
-import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets } from './compute.js';
+import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, regionTeams } from './compute.js';
 import { renderBuild, handleBuildEvent, bracketModel } from './build.js';
 
 const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
@@ -264,7 +264,6 @@ function viewBracket() {
     </div>`;
   }
 
-  const total = DATA.players.length;
   const zoomPct = Math.round(state.zoom * 100) + '%';
   const controlBar = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:62px;z-index:20;padding:8px 10px;margin:0 0 12px;background:rgba(10,24,19,.92);backdrop-filter:blur(8px);border:1px solid #1c3a28;border-radius:12px;">
     <div style="display:flex;align-items:center;gap:8px;">
@@ -301,7 +300,7 @@ function viewBracket() {
     }).join('');
 
     // R16 podium — the 4 possible teams (the four R32 participants), ranked by R16 support.
-    const possible = [M.r32[reg.m[0]].a, M.r32[reg.m[0]].b, M.r32[reg.m[1]].a, M.r32[reg.m[1]].b];
+    const possible = regionTeams(reg, M.r32);
     const ranked = possible
       .map(t => ({ t, c: AGG.r16[reg.id]?.[t.code]?.count || 0 }))
       .sort((x, y) => y.c - x.c);
@@ -378,7 +377,7 @@ function renderSupporterOverlay() {
     }).join('');
   } else {
     const reg = M.regions[om.id];
-    const possible = [M.r32[reg.m[0]].a, M.r32[reg.m[0]].b, M.r32[reg.m[1]].a, M.r32[reg.m[1]].b];
+    const possible = regionTeams(reg, M.r32);
     kicker = 'REGION ' + (om.id + 1) + ' · R16 → QF';
     title = 'Backed to reach the Quarterfinals';
     sub = 'Across both R32 ties in this region.';

@@ -160,6 +160,11 @@ export function regions() {
   return out;
 }
 
+// The 4 R32 participants of a region (the only valid finalist codes for its R16).
+export function regionTeams(reg, r32) {
+  return [r32[reg.m[0]].a, r32[reg.m[0]].b, r32[reg.m[1]].a, r32[reg.m[1]].b];
+}
+
 // Aggregate stored player brackets. players: [{name, bracket:{r32:{mid:code}, r16:{rid:code}}}]
 export function aggregateBrackets(players, r32, regs) {
   const out = { r32: {}, r16: {} };
