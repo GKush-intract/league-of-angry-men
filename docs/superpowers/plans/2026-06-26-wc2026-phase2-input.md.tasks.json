@@ -3,11 +3,11 @@
   "tasks": [
     { "id": 0, "subject": "Task 0: Config + data fields + validation", "status": "completed",
       "description": "Add SHEET_ENDPOINT config (config.js), Phase-2 data fields (data.json meta.phase=2 + phase2Deadline; players bracket/q4/q5/p2), and extend validate-data.mjs (pure validate() export) with tests.\n\n```json:metadata\n{\"files\":[\"config.js\",\"data.json\",\"scripts/validate-data.mjs\",\"test/validate.test.mjs\"],\"verifyCommand\":\"node scripts/validate-data.mjs && node --test test/\",\"acceptanceCriteria\":[\"config.js exports SHEET_ENDPOINT=''\",\"meta.phase=2 + valid phase2Deadline\",\"validator accepts optional bracket/q4/q5/p2 and rejects malformed\",\"tests green\"]}\n```" },
-    { "id": 1, "subject": "Task 1: Bracket derivation in compute.js", "status": "pending", "blockedBy": [0],
+    { "id": 1, "subject": "Task 1: Bracket derivation in compute.js", "status": "completed", "blockedBy": [0],
       "description": "Add pure seedTeams/seedIndex/r32Pairings/regions to compute.js (mirrors prototype 257-267) with node:test coverage.\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"seedTeams returns 32 [12 winners,12 runners,8 thirds]\",\"r32Pairings 1-v-32\",\"regions 8x [2j,2j+1]\",\"seedIndex maps code->pos\"]}\n```" },
     { "id": 2, "subject": "Task 2: Bracket aggregation in compute.js", "status": "pending", "blockedBy": [1],
       "description": "Add aggregateBrackets(players,r32,regs) -> per-team R32 counts + R16 podium counts with backer names.\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"aggregateBrackets returns r32/r16 count+backers\",\"players without bracket contribute nothing\"]}\n```" },
-    { "id": 3, "subject": "Task 3: Standings phase modes in compute.js", "status": "pending", "blockedBy": [0],
+    { "id": 3, "subject": "Task 3: Standings phase modes in compute.js", "status": "completed", "blockedBy": [0],
       "description": "buildStandings(players,proj,prevRanks,mode='p1') adds p1/p2/total and ranks by selectable mode.\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"p1=q+g+b,p2=player.p2,total=p1+p2\",\"sort by mode then total,q,name\",\"default p1 preserves behavior\"]}\n```" },
     { "id": 4, "subject": "Task 4: App shell — 6-tab nav + standings control", "status": "pending", "blockedBy": [3],
       "description": "Update app.js NAV to 6 tabs, extend state, add standings PHASE 1|PHASE 2|TOTAL segmented control; update index.html header pill.\n\n```json:metadata\n{\"files\":[\"app.js\",\"index.html\"],\"verifyCommand\":\"node --test test/\",\"acceptanceCriteria\":[\"NAV 6 tabs correct ids/icons\",\"state has standMode/matchSub/zoom/build state\",\"standings 3-segment control re-ranks\",\"tab switch closes overlay\",\"header pill PHASE 2 PICKS OPEN\"]}\n```" },
@@ -26,5 +26,5 @@
     { "id": 11, "subject": "Task 11: Full verification pass", "status": "pending", "blockedBy": [4, 5, 6, 7, 8, 9, 10],
       "description": "End-to-end verification: full test suite, validator, Playwright over 6 tabs and 4 build states; then finish the branch.\n\n```json:metadata\n{\"files\":[],\"verifyCommand\":\"node --test test/ && node scripts/validate-data.mjs\",\"acceptanceCriteria\":[\"all tests pass\",\"validator exit 0\",\"6 tabs no console errors\",\"build states + preview submit + locked verified\",\"finishing-a-development-branch for merge/PR\"]}\n```" }
   ],
-  "lastUpdated": "2026-06-26T09:05:00Z"
+  "lastUpdated": "2026-06-26T15:15:00Z"
 }
