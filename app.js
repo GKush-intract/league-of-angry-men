@@ -1,9 +1,9 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
-import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS } from './compute.js';
-import { renderBuild, handleBuildEvent } from './build.js';
+import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets } from './compute.js';
+import { renderBuild, handleBuildEvent, bracketModel } from './build.js';
 
 const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
-let DATA, TABLES, PROJ, STAND, TEAM, POT;
+let DATA, TABLES, PROJ, STAND, TEAM, POT, M, AGG;
 
 // Value-for-mode for standings/squad display (NOT the ranking authority — that's
 // the separate valOf inside buildStandings in compute.js, which takes mode as a param).
@@ -37,6 +37,8 @@ function recompute() {
   // from raw results when those aren't present in data.json.
   TABLES = resolveTables(DATA.groups, DATA.results || {}, DATA.tables);
   PROJ = projectedQualifiers(TABLES, DATA.bestThirds || null);
+  M = bracketModel(TABLES, PROJ);
+  AGG = aggregateBrackets(DATA.players, M.r32, M.regions);
   STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {}, state.standMode);
 }
 
@@ -248,12 +250,165 @@ function viewRules() {
     row('<b style="color:#ffce3a;">Q6</b> · No. of games past 90 mins (QF, SF, 3rd, Final)', '7', '7'))}`;
 }
 
-// ---------- Phase 2 stubs (filled in Tasks 5/7/9) ----------
-function viewBracket() { return '<div style="padding:40px;text-align:center;color:#5f7567;">People’s Bracket — coming in Task 7</div>'; }
+// ---------- People's Bracket (aggregate view) ----------
+function viewBracket() {
+  const header = `<div style="margin:16px 2px 10px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;line-height:1;">THE PEOPLE'S BRACKET</div>
+    <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Phase 2 · who backed whom. Pinch the zoom, tap a tie for the full list.</div>
+  </div>`;
+
+  // Honest empty state — nobody has stored a bracket yet.
+  if (DATA.players.every(p => !p.bracket)) {
+    return `${header}<div style="margin:40px 12px;padding:30px 18px;text-align:center;color:#5f7567;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;line-height:1.5;">
+      No brackets in yet — be the first on the <b style="color:#7fd0a0;">Build</b> tab.
+    </div>`;
+  }
+
+  const total = DATA.players.length;
+  const zoomPct = Math.round(state.zoom * 100) + '%';
+  const controlBar = `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:62px;z-index:20;padding:8px 10px;margin:0 0 12px;background:rgba(10,24,19,.92);backdrop-filter:blur(8px);border:1px solid #1c3a28;border-radius:12px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button data-zoom="out" style="width:30px;height:30px;border-radius:8px;background:#15301f;border:1px solid #2c5a38;color:#eef5ec;font-size:18px;cursor:pointer;line-height:1;">−</button>
+      <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;color:#9fb3a6;width:42px;text-align:center;">${zoomPct}</span>
+      <button data-zoom="in" style="width:30px;height:30px;border-radius:8px;background:#15301f;border:1px solid #2c5a38;color:#eef5ec;font-size:18px;cursor:pointer;line-height:1;">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;font-size:10px;font-weight:700;letter-spacing:.04em;">
+      <span style="display:inline-flex;align-items:center;gap:5px;color:#b6ff3a;"><span style="width:9px;height:9px;border-radius:2px;background:#b6ff3a;"></span>MOST BACKED</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;color:#5f7567;"><span style="width:9px;height:9px;border-radius:2px;background:#27412f;"></span>UNDERDOG</span>
+    </div>
+  </div>`;
+
+  const pFont = [16, 14, 12.5, 11.5], pFlag = [18, 15, 13, 12], pBarH = [9, 7, 5.5, 4.5];
+
+  const regionsHtml = M.regions.map(reg => {
+    // Two R32 match cards.
+    const matches = reg.m.map(mid => {
+      const m = M.r32[mid];
+      const cA = AGG.r32[mid]?.[m.a.code]?.count || 0;
+      const cB = AGG.r32[mid]?.[m.b.code]?.count || 0;
+      const lead = cA >= cB ? m.a.code : m.b.code;
+      const rows = [{ t: m.a, c: cA }, { t: m.b, c: cB }].map(({ t, c }) => {
+        const ti = TEAM[t.code] || { flag: t.flag || '' };
+        const isLead = t.code === lead && c > 0;
+        const rowStyle = `display:flex;align-items:center;gap:7px;padding:8px 9px;${isLead ? 'background:rgba(182,255,58,.08);' : ''}`;
+        return `<div style="${rowStyle}">
+          <span style="font-size:15px;flex:none;">${ti.flag || ''}</span>
+          <span style="flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${isLead ? '#fff' : '#9fb3a6'};">${esc(t.code)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:12px;color:${isLead ? '#b6ff3a' : '#5f7567'};">${c}</span>
+        </div>`;
+      }).join('');
+      return `<button data-open="r32:${mid}" style="text-align:left;background:#0a1813;border:1px solid #1c3a28;border-radius:10px;overflow:hidden;cursor:pointer;padding:0;color:#eef5ec;">${rows}</button>`;
+    }).join('');
+
+    // R16 podium — the 4 possible teams (the four R32 participants), ranked by R16 support.
+    const possible = [M.r32[reg.m[0]].a, M.r32[reg.m[0]].b, M.r32[reg.m[1]].a, M.r32[reg.m[1]].b];
+    const ranked = possible
+      .map(t => ({ t, c: AGG.r16[reg.id]?.[t.code]?.count || 0 }))
+      .sort((x, y) => y.c - x.c);
+    const maxC = Math.max(1, ranked[0].c);
+    const qfRows = ranked.map((r, k) => {
+      const ti = TEAM[r.t.code] || { flag: r.t.flag || '' };
+      const barColor = k === 0 ? 'linear-gradient(90deg,#1a7a43,#b6ff3a)' : k === 1 ? '#3f9c5e' : '#27412f';
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;opacity:${1 - k * 0.15};">
+        <span style="font-size:${pFlag[k]}px;flex:none;width:20px;">${ti.flag || ''}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:${pFont[k]}px;width:36px;flex:none;color:${k === 0 ? '#fff' : '#cfe0d4'};">${esc(r.t.code)}</span>
+        <div style="flex:1;min-width:18px;height:${pBarH[k]}px;border-radius:3px;background:#0a1813;overflow:hidden;"><div style="height:100%;width:${Math.round(r.c / maxC * 100)}%;background:${barColor};"></div></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:${pFont[k]}px;width:18px;text-align:right;flex:none;color:${k === 0 ? '#b6ff3a' : '#7f9f86'};">${r.c}</span>
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:16px;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;padding:11px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#7fd0a0;margin:0 0 9px 2px;">REGION ${reg.id + 1} · R32 → R16</div>
+      <div style="display:flex;align-items:stretch;gap:0;">
+        <div style="width:188px;flex:none;display:flex;flex-direction:column;gap:9px;">${matches}</div>
+        <div style="width:26px;flex:none;position:relative;">
+          <div style="position:absolute;left:0;top:25%;width:13px;height:1px;background:#2c5a38;"></div>
+          <div style="position:absolute;left:0;top:75%;width:13px;height:1px;background:#2c5a38;"></div>
+          <div style="position:absolute;left:13px;top:25%;height:50%;width:1px;background:#2c5a38;"></div>
+          <div style="position:absolute;left:13px;top:50%;width:13px;height:1px;background:#2c5a38;"></div>
+        </div>
+        <button data-open="r16:${reg.id}" style="flex:1;min-width:154px;text-align:left;background:linear-gradient(150deg,#13301d,#0a1813);border:1px solid #2c5a38;border-radius:10px;padding:11px 11px 8px;cursor:pointer;color:#eef5ec;">
+          <div style="font-size:8px;letter-spacing:.12em;color:#5f7567;font-weight:700;margin-bottom:9px;">BACKED TO REACH QF</div>
+          ${qfRows}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const tree = `<div class="scrollx" style="overflow:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px 8px;">
+    <div style="display:flex;flex-direction:column;gap:0;zoom:${state.zoom};min-width:340px;">${regionsHtml}</div>
+  </div>`;
+
+  return `${header}${controlBar}${tree}`;
+}
+
 function viewMatches() { return '<div style="padding:40px;text-align:center;color:#5f7567;">Matches — coming in Task 9</div>'; }
+
+// ---------- Supporter overlay (R32 tie / R16 region) ----------
+function renderSupporterOverlay() {
+  const o = $overlay();
+  const om = state.openMatch;
+  const total = DATA.players.length;
+  const sideHtml = (flag, name, fans) => {
+    const c = fans.length;
+    const color = c > 0 ? '#b6ff3a' : '#5f7567';
+    const chips = c > 0
+      ? fans.map(n => `<span style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;background:#0e1d14;border:1px solid #1c3a28;color:#cfe0d4;">${esc(n)}</span>`).join('')
+      : `<span style="font-size:12px;color:#5f7567;font-style:italic;">nobody backed this one 💀</span>`;
+    return `<div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px;">
+        <span style="font-size:22px;">${flag || ''}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:19px;flex:1;min-width:0;">${esc(name)}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:18px;color:${color};">${c}/${total}</span>
+      </div>
+      <div style="height:6px;border-radius:4px;background:#0e1d14;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:${total ? Math.round(c / total * 100) : 0}%;background:linear-gradient(90deg,#1a7a43,#b6ff3a);"></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${chips}</div>
+    </div>`;
+  };
+
+  let kicker, title, sub, sides;
+  if (om.round === 'r32') {
+    const m = M.r32[om.id];
+    kicker = 'ROUND OF 32 · TIE ' + (om.id + 1);
+    title = `${m.a.name} vs ${m.b.name}`;
+    sub = 'Who backed each side to reach the Round of 16.';
+    sides = [m.a, m.b].map(t => {
+      const ti = TEAM[t.code] || { flag: t.flag || '', name: t.name };
+      return sideHtml(ti.flag, ti.name || t.name, AGG.r32[om.id]?.[t.code]?.backers || []);
+    }).join('');
+  } else {
+    const reg = M.regions[om.id];
+    const possible = [M.r32[reg.m[0]].a, M.r32[reg.m[0]].b, M.r32[reg.m[1]].a, M.r32[reg.m[1]].b];
+    kicker = 'REGION ' + (om.id + 1) + ' · R16 → QF';
+    title = 'Backed to reach the Quarterfinals';
+    sub = 'Across both R32 ties in this region.';
+    sides = possible
+      .map(t => ({ t, backers: AGG.r16[om.id]?.[t.code]?.backers || [] }))
+      .sort((a, b) => b.backers.length - a.backers.length)
+      .map(({ t, backers }) => {
+        const ti = TEAM[t.code] || { flag: t.flag || '', name: t.name };
+        return sideHtml(ti.flag, ti.name || t.name, backers);
+      }).join('');
+  }
+
+  o.innerHTML = `
+    <div data-close="1" style="position:fixed;inset:0;z-index:60;background:rgba(3,8,5,.82);backdrop-filter:blur(3px);"></div>
+    <div style="position:fixed;z-index:61;left:0;right:0;bottom:0;top:18%;max-width:680px;margin:0 auto;background:#0a1813;border:1px solid #2c5a38;border-radius:22px 22px 0 0;overflow-y:auto;">
+      <div style="position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#0a1813;border-bottom:1px solid #1c3a28;z-index:2;">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.14em;font-size:12px;color:#7fd0a0;">${kicker}</span>
+        <button data-close="1" style="width:30px;height:30px;border-radius:9px;background:#15301f;border:1px solid #2c5a38;color:#eef5ec;font-size:16px;cursor:pointer;line-height:1;">✕</button>
+      </div>
+      <div style="padding:16px 16px 44px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px;">${esc(title)}</div>
+        <div style="font-size:12px;color:#5f7567;margin-bottom:16px;">${sub}</div>
+        ${sides}
+      </div>
+    </div>`;
+}
 
 // ---------- Player detail overlay ----------
 function renderOverlay() {
+  if (state.openMatch) { renderSupporterOverlay(); return; }
   const o = $overlay();
   if (state.selected == null) { o.innerHTML = ''; return; }
   const p = STAND.find(x => x.name === state.selected);
@@ -315,10 +470,14 @@ document.addEventListener('click', (e) => {
   if (state.tab === 'build') { handleBuildEvent(buildCtx(), e.target); return; }
   const seg = e.target.closest('[data-mode]');
   if (seg) { state.standMode = seg.dataset.mode; recompute(); render(); return; }
+  const z = e.target.closest('[data-zoom]');
+  if (z) { state.zoom = Math.round((Math.min(1.4, Math.max(0.6, state.zoom + (z.dataset.zoom === 'in' ? 0.2 : -0.2)))) * 10) / 10; render(); return; }
+  const op = e.target.closest('[data-open]');
+  if (op) { const [round, id] = op.dataset.open.split(':'); state.openMatch = { round, id: +id }; state.selected = null; renderOverlay(); return; }
   const close = e.target.closest('[data-close]');
-  if (close) { state.selected = null; renderOverlay(); return; }
+  if (close) { state.selected = null; state.openMatch = null; renderOverlay(); return; }
   const pl = e.target.closest('[data-player]');
-  if (pl) { state.selected = pl.dataset.player; renderOverlay(); return; }
+  if (pl) { state.selected = pl.dataset.player; state.openMatch = null; renderOverlay(); return; }
 });
 
 document.addEventListener('change', (e) => {
