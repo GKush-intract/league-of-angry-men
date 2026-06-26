@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
+  seedTeams, r32Pairings, regions, seedIndex,
+  aggregateBrackets, regionTeams,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -121,4 +123,118 @@ test('buildStandings: sorts and computes movement', () => {
   assert.equal(st[0].rank, 1);
   assert.equal(st[0].mv, 1);
   assert.equal(st[1].mv, -1);
+});
+
+// ---- Phase 2: bracket derivation ----
+
+function fixtureTables() {
+  // 12 groups A-L, 4 teams each; codes G<letter><1..4>; pts descending by index.
+  const groups = {}, tables = {};
+  'ABCDEFGHIJKL'.split('').forEach((L, gi) => {
+    groups[L] = [0,1,2,3].map(i => [`${L}${i+1}`.padEnd(3,'X').slice(0,3), `Team ${L}${i+1}`, '🏳']);
+  });
+  // Build official-style tables so order is deterministic: team i has pts (4-i).
+  'ABCDEFGHIJKL'.split('').forEach(L => {
+    tables[L] = groups[L].map((t, i) => ({ code: t[0], p: 3, w: 3-i, d: 0, l: i, gf: 9-i, ga: i, gd: 9-2*i, pts: (3-i)*3 }));
+  });
+  return { groups, tables };
+}
+
+test('seedTeams orders winners, runners-up, then 8 best thirds', () => {
+  const { groups, tables } = fixtureTables();
+  const T = resolveTables(groups, {}, tables);
+  const proj = projectedQualifiers(T, null);
+  const seed = seedTeams(T, proj);
+  assert.equal(seed.length, 32);
+  // first 12 are each group's winner (index 0)
+  assert.deepEqual(seed.slice(0,12).map(t => t.code), 'ABCDEFGHIJKL'.split('').map(L => T[L][0].code));
+  // next 12 are runners-up
+  assert.deepEqual(seed.slice(12,24).map(t => t.code), 'ABCDEFGHIJKL'.split('').map(L => T[L][1].code));
+  // last 8 are thirds from the 8 best-third groups, A->L order
+  const thirdLs = 'ABCDEFGHIJKL'.split('').filter(L => proj.best8.has(L));
+  assert.deepEqual(seed.slice(24).map(t => t.code), thirdLs.map(L => T[L][2].code));
+});
+
+test('r32Pairings is classic 1-v-32', () => {
+  const { groups, tables } = fixtureTables();
+  const T = resolveTables(groups, {}, tables);
+  const seed = seedTeams(T, projectedQualifiers(T, null));
+  const r32 = r32Pairings(seed);
+  assert.equal(r32.length, 16);
+  assert.equal(r32[0].a.code, seed[0].code);
+  assert.equal(r32[0].b.code, seed[31].code);
+  assert.equal(r32[15].a.code, seed[15].code);
+  assert.equal(r32[15].b.code, seed[16].code);
+});
+
+test('regions feed from consecutive r32 matches', () => {
+  assert.deepEqual(regions().map(r => r.m), [[0,1],[2,3],[4,5],[6,7],[8,9],[10,11],[12,13],[14,15]]);
+});
+
+test('regionTeams returns the 4 R32 participants of a region', () => {
+  const r32 = [{ a: { code: 'A' }, b: { code: 'B' } }, { a: { code: 'C' }, b: { code: 'D' } }];
+  const reg = { id: 0, m: [0, 1] };
+  assert.deepEqual(regionTeams(reg, r32).map(t => t.code), ['A', 'B', 'C', 'D']);
+});
+
+test('seedIndex maps code to seed position', () => {
+  const { groups, tables } = fixtureTables();
+  const T = resolveTables(groups, {}, tables);
+  const seed = seedTeams(T, projectedQualifiers(T, null));
+  assert.equal(seedIndex(seed)[seed[0].code], 0);
+  assert.equal(seedIndex(seed)[seed[31].code], 31);
+});
+
+test('buildStandings ranks by mode', () => {
+  const proj = { qualified: new Set(), groupQ: {}, top2: {}, started: {}, best8: new Set() };
+  const players = [
+    { name: 'A', b: 0, picks: {}, p2: 50 },
+    { name: 'B', b: 10, picks: {}, p2: 0 },
+  ];
+  const byP1 = buildStandings(players, proj, {}, 'p1');
+  assert.equal(byP1[0].name, 'B'); // p1: B=10 > A=0
+  const byP2 = buildStandings(players, proj, {}, 'p2');
+  assert.equal(byP2[0].name, 'A'); // p2: A=50 > B=0
+  assert.equal(byP2[0].total, 50); assert.equal(byP1[0].total, 10);
+});
+
+test('buildStandings total mode and tiebreak chain', () => {
+  const proj = { qualified: new Set(), groupQ: {}, top2: {}, started: {}, best8: new Set() };
+  // total mode: p1+p2 decides, overriding what p1 alone would pick.
+  const totalPlayers = [
+    { name: 'LowP1', b: 5, picks: {}, p2: 30 },  // p1=5,  total=35
+    { name: 'HighP1', b: 20, picks: {}, p2: 0 },  // p1=20, total=20
+  ];
+  const byTotal = buildStandings(totalPlayers, proj, {}, 'total');
+  assert.equal(byTotal[0].name, 'LowP1');  // 35 > 20 even though p1 is lower
+  assert.equal(byTotal[0].total, 35);
+
+  // tiebreak: equal valueForMode (p2=7) -> fall back to total desc.
+  const tieTotal = buildStandings([
+    { name: 'X', b: 0, picks: {}, p2: 7 },  // p1=0, total=7
+    { name: 'Y', b: 5, picks: {}, p2: 7 },  // p1=5, total=12
+  ], proj, {}, 'p2');
+  assert.equal(tieTotal[0].name, 'Y');  // equal p2 -> higher total wins
+
+  // tiebreak: fully equal scores -> fall back to name asc.
+  const tieName = buildStandings([
+    { name: 'Zed', b: 0, picks: {}, p2: 0 },
+    { name: 'Abe', b: 0, picks: {}, p2: 0 },
+  ], proj, {}, 'total');
+  assert.equal(tieName[0].name, 'Abe');  // all equal -> name ascending
+});
+
+test('aggregateBrackets tallies counts and backers', () => {
+  const r32 = [{ id: 0, a: { code: 'AAA' }, b: { code: 'BBB' } }];
+  const regs = [{ id: 0, m: [0, 1] }];
+  const players = [
+    { name: 'X', bracket: { r32: { '0': 'AAA' }, r16: { '0': 'AAA' } } },
+    { name: 'Y', bracket: { r32: { '0': 'AAA' }, r16: { '0': 'BBB' } } },
+    { name: 'Z' }, // no bracket
+  ];
+  const agg = aggregateBrackets(players, r32, regs);
+  assert.equal(agg.r32[0]['AAA'].count, 2);
+  assert.deepEqual(agg.r32[0]['AAA'].backers, ['X', 'Y']);
+  assert.equal(agg.r16[0]['AAA'].count, 1);
+  assert.equal(agg.r16[0]['BBB'].count, 1);
 });

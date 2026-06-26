@@ -36,6 +36,11 @@ jobs:
       - name: Fetch official tables from Wikipedia
         run: python3 scripts/fetch-official.py
 
+      - name: Sync Phase 2 picks
+        env:
+          PICKS_CSV_URL: ${{ secrets.PICKS_CSV_URL }}
+        run: node scripts/fetch-picks.mjs
+
       - name: Run tests
         run: node --test
 

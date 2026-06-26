@@ -1,8 +1,9 @@
 {
   "meta": {
     "lastUpdated": "2026-06-26T06:37:02Z",
-    "phase": 1,
-    "entryFee": 1000
+    "phase": 2,
+    "entryFee": 1000,
+    "phase2Deadline": "2026-06-28T15:00:00Z"
   },
   "groups": {
     "A": [

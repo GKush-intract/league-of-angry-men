@@ -109,12 +109,79 @@ export function scorePlayer(player, proj) {
   return { q, g, b, total: q + g + b };
 }
 
-export function buildStandings(players, proj, previousRanks = {}) {
-  const scored = players.map(p => ({ ...p, ...scorePlayer(p, proj) }));
-  scored.sort((a, b) => b.total - a.total || b.q - a.q || a.name.localeCompare(b.name));
+export function buildStandings(players, proj, previousRanks = {}, mode = 'p1') {
+  const scored = players.map(p => {
+    const s = scorePlayer(p, proj);          // {q, g, b, total: q+g+b}
+    const p1 = s.total, p2 = p.p2 || 0;
+    return { ...p, ...s, p1, p2, total: p1 + p2 };
+  });
+  // mode: 'p1' (default) | 'p2' | 'total'; any other value ranks by p1
+  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
+  scored.sort((a, b) => valOf(b) - valOf(a) || b.total - a.total || b.q - a.q || a.name.localeCompare(b.name));
   return scored.map((p, i) => {
-    const rank = i + 1;
-    const prev = previousRanks[p.name];
+    const rank = i + 1, prev = previousRanks[p.name];
     return { ...p, rank, mv: (prev == null ? 0 : prev - rank) };
   });
+}
+
+// Qualified-32 seed: [12 group winners, 12 runners-up, 8 best-3rd teams].
+// proj.best8 is a Set of group letters whose 3rd-placed team qualifies.
+export function seedTeams(tables, proj) {
+  const winners = [], seconds = [], thirds = [];
+  for (const L of GROUP_LETTERS) {
+    const st = tables[L] || [];
+    if (st[0]) winners.push(st[0]);
+    if (st[1]) seconds.push(st[1]);
+    if (proj.best8.has(L) && st[2]) thirds.push(st[2]);
+  }
+  return [...winners, ...seconds, ...thirds].slice(0, 32);
+}
+
+export function seedIndex(seed) {
+  const idx = {};
+  seed.forEach((t, i) => { idx[t.code] = i; });
+  return idx;
+}
+
+// R32 match i (0-15) = (seed[i], seed[31-i]). Always returns length 16 because
+// regions() hard-references match ids 0-15. Expects a complete 32-element seed;
+// callers (e.g. the Build tab) must gate on a fully-resolved table — on a short
+// seed the tail pairings will have b === undefined.
+export function r32Pairings(seed) {
+  const out = [];
+  for (let i = 0; i < 16; i++) out.push({ id: i, a: seed[i], b: seed[31 - i] });
+  return out;
+}
+
+// Region j (0-7) feeds from R32 matches 2j and 2j+1.
+export function regions() {
+  const out = [];
+  for (let j = 0; j < 8; j++) out.push({ id: j, m: [2 * j, 2 * j + 1] });
+  return out;
+}
+
+// The 4 R32 participants of a region (the only valid finalist codes for its R16).
+export function regionTeams(reg, r32) {
+  return [r32[reg.m[0]].a, r32[reg.m[0]].b, r32[reg.m[1]].a, r32[reg.m[1]].b];
+}
+
+// Aggregate stored player brackets. players: [{name, bracket:{r32:{mid:code}, r16:{rid:code}}}]
+export function aggregateBrackets(players, r32, regs) {
+  const out = { r32: {}, r16: {} };
+  for (const m of r32) out.r32[m.id] = {};
+  for (const reg of regs) out.r16[reg.id] = {};
+  for (const p of players) {
+    const b = p.bracket; if (!b) continue;
+    for (const m of r32) {
+      const code = b.r32 && b.r32[m.id]; if (!code) continue;
+      (out.r32[m.id][code] ||= { count: 0, backers: [] });
+      out.r32[m.id][code].count++; out.r32[m.id][code].backers.push(p.name);
+    }
+    for (const reg of regs) {
+      const code = b.r16 && b.r16[reg.id]; if (!code) continue;
+      (out.r16[reg.id][code] ||= { count: 0, backers: [] });
+      out.r16[reg.id][code].count++; out.r16[reg.id][code].backers.push(p.name);
+    }
+  }
+  return out;
 }

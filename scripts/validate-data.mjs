@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 
 const LETTERS = 'ABCDEFGHIJKL'.split('');
+const CODE = /^[A-Z]{3}$/;
 
 export function validate(data) {
   const errors = [], warnings = [];
@@ -47,8 +48,37 @@ export function validate(data) {
     }
   }
 
+  // Phase-2 meta deadline
+  if (data.meta?.phase2Deadline !== undefined && Number.isNaN(Date.parse(data.meta.phase2Deadline)))
+    errors.push('meta.phase2Deadline must be an ISO date string');
+
   const rows = [];
   for (const p of (data.players || [])) {
+    // Phase-2 optional fields
+    if (p.bracket !== undefined) {
+      if (typeof p.bracket !== 'object' || p.bracket === null || Array.isArray(p.bracket)) {
+        errors.push(`${p.name}: bracket must be an object`);
+      } else {
+        for (const round of ['r32', 'r16']) {
+          const r = p.bracket[round];
+          if (r === undefined) continue;
+          if (typeof r !== 'object' || r === null || Array.isArray(r)) {
+            errors.push(`${p.name}: bracket.${round} must be an object`);
+            continue;
+          }
+          for (const [k, v] of Object.entries(r)) {
+            if (typeof v !== 'string' || !CODE.test(v))
+              errors.push(`${p.name}: bracket.${round}[${k}] must be a 3-letter code`);
+          }
+        }
+      }
+    }
+    for (const f of ['q4', 'q5']) {
+      if (p[f] !== undefined && (typeof p[f] !== 'string' || !CODE.test(p[f])))
+        errors.push(`${p.name}: ${f} must be a 3-letter code`);
+    }
+    if (p.p2 !== undefined && (typeof p.p2 !== 'number' || Number.isNaN(p.p2)))
+      errors.push(`${p.name}: p2 must be a number`);
     let total = 0; const counts = {};
     for (const L of LETTERS) {
       const picks = p.picks?.[L] || [];
