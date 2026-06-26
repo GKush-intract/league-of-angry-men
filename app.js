@@ -1,5 +1,6 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS } from './compute.js';
+import { renderBuild, handleBuildEvent } from './build.js';
 
 const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
 let DATA, TABLES, PROJ, STAND, TEAM, POT;
@@ -49,9 +50,10 @@ function renderNav() {
   }).join('');
 }
 
+function buildCtx() { return { DATA, TABLES, PROJ, TEAM, state, rerender: render }; }
 function render() {
   renderNav();
-  const views = { standings: viewStandings, bracket: viewBracket, build: viewBuild, players: viewPlayers, matches: viewMatches, rules: viewRules };
+  const views = { standings: viewStandings, bracket: viewBracket, build: () => renderBuild(buildCtx()), players: viewPlayers, matches: viewMatches, rules: viewRules };
   $view().innerHTML = (views[state.tab] || viewStandings)();
   window.scrollTo(0, 0);
   renderOverlay();
@@ -248,7 +250,6 @@ function viewRules() {
 
 // ---------- Phase 2 stubs (filled in Tasks 5/7/9) ----------
 function viewBracket() { return '<div style="padding:40px;text-align:center;color:#5f7567;">People’s Bracket — coming in Task 7</div>'; }
-function viewBuild()   { return '<div style="padding:40px;text-align:center;color:#5f7567;">Build your bracket — coming in Task 5</div>'; }
 function viewMatches() { return '<div style="padding:40px;text-align:center;color:#5f7567;">Matches — coming in Task 9</div>'; }
 
 // ---------- Player detail overlay ----------
@@ -311,12 +312,19 @@ function renderOverlay() {
 document.addEventListener('click', (e) => {
   const nav = e.target.closest('[data-tab]');
   if (nav) { state.tab = nav.dataset.tab; state.selected = null; state.openMatch = null; render(); return; }
+  if (state.tab === 'build') { handleBuildEvent(buildCtx(), e.target); return; }
   const seg = e.target.closest('[data-mode]');
   if (seg) { state.standMode = seg.dataset.mode; recompute(); render(); return; }
   const close = e.target.closest('[data-close]');
   if (close) { state.selected = null; renderOverlay(); return; }
   const pl = e.target.closest('[data-player]');
   if (pl) { state.selected = pl.dataset.player; renderOverlay(); return; }
+});
+
+document.addEventListener('change', (e) => {
+  if (state.tab !== 'build') return;
+  const nameEl = e.target.closest('[data-name]');
+  if (nameEl) { state.builderName = nameEl.value === '' ? null : +nameEl.value; state.submitState = 'idle'; render(); return; }
 });
 
 boot();
