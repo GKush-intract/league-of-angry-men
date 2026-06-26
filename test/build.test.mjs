@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyR32, applyR16, pickCounts } from '../build.js';
+import { applyR32, applyR16, pickCounts, buildPayload } from '../build.js';
 
 test('applyR16 then invalidating R32 clears the R16 pick', () => {
   let picks = { r32: {}, r16: {} };
@@ -21,4 +21,17 @@ test('applyR16 survives a still-valid R32 change', () => {
 test('pickCounts totals r32 + r16', () => {
   const M = { r32: [{id:0},{id:1}], regions: [{id:0}] };
   assert.deepEqual(pickCounts({ r32:{0:'A'}, r16:{} }, M), { r32done:1, r16done:0, total:1 });
+});
+
+test('buildPayload produces 16 r32 + 8 r16 entries with matchup strings', () => {
+  const M = { r32: Array.from({length:16}, (_,i)=>({id:i, a:{code:`A${i}`.slice(0,3)}, b:{code:`B${i}`.slice(0,3)}})),
+              regions: Array.from({length:8}, (_,j)=>({id:j, m:[2*j,2*j+1]})) };
+  const ctx = { DATA: { players: [{ name:'Sam', nick:'The Cat' }] },
+                state: { builderName:0, picks:{ r32:{0:'A0'}, r16:{0:'A0'} }, q4:'A0', q5:'B0' } };
+  const p = JSON.parse(buildPayload(ctx, M));
+  assert.equal(p.player, 'Sam'); assert.equal(p.phase, 2);
+  assert.equal(p.r32.length, 16); assert.equal(p.r16.length, 8);
+  assert.equal(p.r32[0].tie, 1); assert.match(p.r32[0].matchup, / v /);
+  assert.equal(p.r32[0].pick, 'A0'); assert.equal(p.r16[0].region, 1);
+  assert.equal(p.q4, 'A0'); assert.equal(p.q5, 'B0');
 });

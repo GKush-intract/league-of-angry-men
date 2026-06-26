@@ -325,6 +325,10 @@ document.addEventListener('change', (e) => {
   if (state.tab !== 'build') return;
   const nameEl = e.target.closest('[data-name]');
   if (nameEl) { state.builderName = nameEl.value === '' ? null : +nameEl.value; state.submitState = 'idle'; render(); return; }
+  const q4El = e.target.closest('[data-q4]');
+  if (q4El) { state.q4 = q4El.value; state.submitState = 'idle'; render(); return; }
+  const q5El = e.target.closest('[data-q5]');
+  if (q5El) { state.q5 = q5El.value; state.submitState = 'idle'; render(); return; }
 });
 
 boot();

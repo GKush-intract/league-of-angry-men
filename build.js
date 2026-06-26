@@ -26,6 +26,23 @@ export function applyR16(picks, rid, code) {
   return { r32: { ...picks.r32 }, r16: { ...picks.r16, [rid]: code } };
 }
 
+export function buildPayload(ctx, M) {
+  const { DATA, state } = ctx;
+  const p = DATA.players[state.builderName] || { name: '?', nick: '' };
+  const r32 = M.r32.map(m => ({ tie: m.id + 1, matchup: m.a.code + ' v ' + m.b.code, pick: state.picks.r32[m.id] || null }));
+  const r16 = M.regions.map(reg => ({ region: reg.id + 1, pick: state.picks.r16[reg.id] || null }));
+  return JSON.stringify({ player: p.name, nick: p.nick || '', phase: 2, submittedAt: new Date().toISOString(), r32, r16, q4: state.q4, q5: state.q5 }, null, 2);
+}
+
+export function submitBracket(ctx, M) {
+  const payload = buildPayload(ctx, M);
+  if (SHEET_ENDPOINT) {
+    try { fetch(SHEET_ENDPOINT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload }); } catch (e) {}
+  }
+  ctx.state.submitState = 'done'; ctx.state.lastPayload = payload; ctx.state.copied = false;
+  ctx.rerender();
+}
+
 // ---------- rendering ----------
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -152,12 +169,59 @@ export function renderBuild(ctx) {
       <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Phase 2 · pick 16 R32 winners (2 pts) + 8 R16 winners (4 pts). Tap a team to send it through.</div>
     </div>`;
 
-  // Q4/Q5 + submit + confirm panel are Task 6 — placeholder only.
-  const submitStub = `<div data-build-submit-stub style="margin-top:16px;padding:16px;text-align:center;color:#5f7567;border:1px dashed #1c3a28;border-radius:12px;">Bonus questions &amp; submit — Task 6</div>`;
+  // ---------- bonus questions (Q4/Q5) ----------
+  const teamOptionEls = (q) => M.seed.map(t => {
+    const info = TEAM[t.code] || {};
+    const label = `${info.flag || ''} ${info.name || t.code}`.trim();
+    const sel = q === t.code ? ' selected' : '';
+    return `<option value="${esc(t.code)}"${sel}>${esc(label)}</option>`;
+  }).join('');
+  const bonusCard = (qLabel, copy, attr, qVal) => `<div style="background:#0c1710;border:1px solid #1c3a28;border-radius:12px;padding:13px;${qLabel === 'Q4' ? 'margin-bottom:9px;' : ''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#ffce3a;font-size:13px;">${qLabel}</span><span style="font-size:12px;color:#cfe0d4;">${copy}</span></div>
+      <select ${locked ? 'disabled' : attr} style="${selectStyle}">
+        <option value="">— pick a team —</option>
+        ${teamOptionEls(qVal)}
+      </select>
+    </div>`;
+  const bonus = `<div style="margin:18px 2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;">BONUS QUESTIONS</div>
+    ${bonusCard('Q4', 'Most goals scored (R32 + R16) — worth 4', 'data-q4', state.q4)}
+    ${bonusCard('Q5', 'Most goals conceded (R32 + R16) — worth 4', 'data-q5', state.q5)}`;
+
+  // ---------- submit gate ----------
+  const namePicked = state.builderName != null;
+  const allDone = pickCount >= 24 && state.q4 && state.q5 && namePicked;
+  const submitDisabled = locked || !allDone;
+  const submitStyle = `width:100%;margin-top:18px;padding:15px;border:0;border-radius:13px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.04em;cursor:${submitDisabled ? 'not-allowed' : 'pointer'};background:${submitDisabled ? '#15301f' : 'linear-gradient(90deg,#1a7a43,#7ed957)'};color:${submitDisabled ? '#5f7567' : '#06140a'};`;
+  const submitLabel = locked ? '🔒 LOCKED' : 'SUBMIT MY BRACKET';
+  const submitHint = locked
+    ? 'The deadline has passed — picks can no longer be changed.'
+    : !namePicked ? 'Pick your name first.'
+      : pickCount < 24 ? (24 - pickCount) + ' bracket picks to go.'
+        : (!state.q4 || !state.q5) ? 'Answer Q4 and Q5 to finish.'
+          : (SHEET_ENDPOINT ? 'Saves straight to the league Google Sheet.' : 'Preview mode — copy the JSON and send it to the organizer.');
+  const submit = locked ? '' : `<button data-submit ${submitDisabled ? 'disabled' : ''} style="${submitStyle}">${submitLabel}</button>
+    <div style="font-size:11px;color:#5f7567;text-align:center;margin-top:9px;line-height:1.5;">${submitHint}</div>`;
+
+  // ---------- confirmation panel ----------
+  let confirm = '';
+  if (state.submitState === 'done') {
+    const confirmTitle = SHEET_ENDPOINT ? 'Bracket submitted!' : 'Bracket captured (preview)';
+    const confirmSub = SHEET_ENDPOINT ? 'Saved to the league sheet. Talk your trash in the group chat.' : 'No Sheet connected yet — copy this and send it to the organizer, or wire up Apps Script.';
+    const copyLabel = state.copied ? 'Copied!' : 'Copy JSON';
+    confirm = `<div style="margin-top:14px;padding:15px;background:linear-gradient(150deg,#15351f,#0c1f14);border:1px solid #2c5a38;border-radius:14px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:#b6ff3a;">✓ ${confirmTitle}</div>
+      <div style="font-size:12px;color:#cfe0d4;margin-top:5px;line-height:1.5;">${confirmSub}</div>
+      <pre style="margin:11px 0 0;padding:11px;background:#06100a;border:1px solid #1c3a28;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#9fb3a6;white-space:pre-wrap;word-break:break-word;max-height:170px;overflow:auto;">${esc(state.lastPayload || '')}</pre>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button data-copy style="flex:1;padding:10px;background:#15301f;border:1px solid #2c5a38;border-radius:9px;color:#b6ff3a;font-weight:700;font-size:12px;cursor:pointer;">${copyLabel}</button>
+        <button data-reset style="flex:1;padding:10px;background:transparent;border:1px solid #1c3a28;border-radius:9px;color:#9fb3a6;font-weight:700;font-size:12px;cursor:pointer;">Edit again</button>
+      </div>
+    </div>`;
+  }
 
   return `${header}${lockedNote}${banner}${nameSelect}
     <div style="margin:18px 2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;">THE BRACKET</div>
-    ${regionsHtml}${submitStub}`;
+    ${regionsHtml}${bonus}${submit}${confirm}`;
 }
 
 // Delegated click handler for the Build tab. Returns true if it handled the event.
@@ -168,4 +232,10 @@ export function handleBuildEvent(ctx, target) {
   if (r32el) { state.picks = applyR32(state.picks, +r32el.dataset.r32, r32el.dataset.code); state.submitState = 'idle'; return rerender(); }
   const r16el = target.closest('[data-r16]');
   if (r16el) { state.picks = applyR16(state.picks, +r16el.dataset.r16, r16el.dataset.code); state.submitState = 'idle'; return rerender(); }
+  const submitEl = target.closest('[data-submit]');
+  if (submitEl && !submitEl.disabled) { return submitBracket(ctx, bracketModel(ctx.TABLES, ctx.PROJ)); }
+  const copyEl = target.closest('[data-copy]');
+  if (copyEl) { if (navigator.clipboard) navigator.clipboard.writeText(state.lastPayload); state.copied = true; return rerender(); }
+  const resetEl = target.closest('[data-reset]');
+  if (resetEl) { state.submitState = 'idle'; return rerender(); }
 }
