@@ -1,14 +1,14 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS } from './compute.js';
 
-const state = { tab: 'standings', selected: null };
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false };
 let DATA, TABLES, PROJ, STAND, TEAM, POT;
 
 const $view = () => document.getElementById('view');
 const $overlay = () => document.getElementById('overlay');
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const NAV = [['standings', 'Table', '🏆'], ['players', 'Players', '👤'], ['schedule', 'Fixtures', '📅'], ['groups', 'Groups', '🏟️'], ['rules', 'Rules', '📖']];
+const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['build','Build','✏️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
 const medal = (r) => r === 1 ? ['#ffce3a', '#1a1400'] : r === 2 ? ['#cfd8d4', '#10201a'] : r === 3 ? ['#d98b46', '#160d04'] : ['#15301f', '#7fd0a0'];
 function tagFor(rank, n) {
   if (rank === 1) return ['👑 TOP OF THE TABLE', '#ffce3a'];
@@ -32,7 +32,7 @@ function recompute() {
   // from raw results when those aren't present in data.json.
   TABLES = resolveTables(DATA.groups, DATA.results || {}, DATA.tables);
   PROJ = projectedQualifiers(TABLES, DATA.bestThirds || null);
-  STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {});
+  STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {}, state.standMode);
 }
 
 function renderNav() {
@@ -47,7 +47,7 @@ function renderNav() {
 
 function render() {
   renderNav();
-  const views = { standings: viewStandings, players: viewPlayers, schedule: viewSchedule, groups: viewGroups, rules: viewRules };
+  const views = { standings: viewStandings, bracket: viewBracket, build: viewBuild, players: viewPlayers, matches: viewMatches, rules: viewRules };
   $view().innerHTML = (views[state.tab] || viewStandings)();
   window.scrollTo(0, 0);
   renderOverlay();
@@ -61,10 +61,24 @@ function statTile(label, val, color) {
 }
 function viewStandings() {
   const n = STAND.length, leader = STAND[0];
+  const mode = state.standMode;
+  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
+  const denom = { p1: 71, p2: 72, total: 200 }[mode] || 71;
+  const leaderLabel = { p1: 'PHASE 1 LEADER', p2: 'PHASE 2 LEADER', total: 'OVERALL LEADER' }[mode] || 'PHASE 1 LEADER';
+  const footnote = mode === 'p2'
+    ? 'Phase 2 = R32 + R16 bracket + Q4/Q5. Points are placeholder until results come in.'
+    : mode === 'total'
+      ? 'Combined Phase 1 + Phase 2. Phase 3 (QF→Final) still to come. Max 200.'
+      : 'Phase 1 = R32 qualifiers + group bonus + Q1–Q3. The bar is points out of 71.';
+  const modeDef = [['p1', 'PHASE 1'], ['p2', 'PHASE 2'], ['total', 'TOTAL']];
+  const seg = `<div style="display:flex;gap:6px;margin:14px 0 6px;padding:4px;background:#0a1813;border:1px solid #1c3a28;border-radius:12px;">
+    ${modeDef.map(([k, label]) => `<button data-mode="${k}" style="flex:1;padding:8px 4px;border:0;border-radius:9px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.06em;background:${mode === k ? '#1a7a43' : 'transparent'};color:${mode === k ? '#eafff0' : '#7fd0a0'};">${label}</button>`).join('')}
+  </div>`;
   const rows = STAND.map(p => {
     const [tag, tagColor] = tagFor(p.rank, n);
     const [rb, rf] = medal(p.rank);
-    const barPct = Math.min(100, Math.round(p.q / 32 * 100));
+    const value = valOf(p);
+    const barPct = Math.min(100, Math.round(value / denom * 100));
     const mvText = p.mv > 0 ? ('▲ ' + p.mv) : p.mv < 0 ? ('▼ ' + Math.abs(p.mv)) : '–';
     const mvColor = p.mv > 0 ? '#b6ff3a' : p.mv < 0 ? '#ff5a5a' : '#5f7567';
     return `<button data-player="${esc(p.name)}" style="width:100%;text-align:left;display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:7px;background:#0e1d14;border:1px solid #1c3a28;border-radius:13px;cursor:pointer;color:#eef5ec;">
@@ -78,7 +92,7 @@ function viewStandings() {
         <div style="height:4px;border-radius:3px;background:#0a1813;margin-top:7px;overflow:hidden;"><div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,#1a7a43,#b6ff3a);border-radius:3px;"></div></div>
       </div>
       <div style="text-align:right;flex:none;">
-        <div style="font-family:'JetBrains Mono';font-weight:800;font-size:22px;color:#b6ff3a;line-height:1;">${p.total}</div>
+        <div style="font-family:'JetBrains Mono';font-weight:800;font-size:22px;color:#b6ff3a;line-height:1;">${value}</div>
         <div style="font-size:10px;color:${mvColor};font-weight:700;margin-top:3px;">${mvText}</div>
       </div></button>`;
   }).join('');
@@ -86,13 +100,14 @@ function viewStandings() {
   <div style="display:flex;gap:8px;margin:14px 0 4px;">
     ${statTile('PRIZE POOL', POT, '#ffce3a')}${statTile('ANGRY MEN', STAND.length, '#eef5ec')}${statTile('MAX PTS', 200, '#eef5ec')}
   </div>
-  <div style="position:relative;margin:13px 0 16px;padding:18px;border-radius:18px;background:linear-gradient(150deg,#15351f 0%,#0c1f14 72%);border:1px solid #2c5a38;overflow:hidden;">
+  ${seg}
+  <div style="position:relative;margin:10px 0 16px;padding:18px;border-radius:18px;background:linear-gradient(150deg,#15351f 0%,#0c1f14 72%);border:1px solid #2c5a38;overflow:hidden;">
     <div style="position:absolute;right:-18px;top:-26px;font-size:120px;opacity:.06;">🏆</div>
-    <div style="font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.18em;color:#ffce3a;">👑 CURRENT LEADER</div>
+    <div style="font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.18em;color:#ffce3a;">👑 ${leaderLabel}</div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px;position:relative;">
       <div style="min-width:0;"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;line-height:.92;">${esc(leader.name)}</div>
       <div style="font-size:13px;color:#9fb3a6;margin-top:4px;">${esc(leader.nick || '')}${leader.nick ? ' · ' : ''}top of the angry men</div></div>
-      <div style="text-align:right;flex:none;padding-left:12px;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:40px;color:#b6ff3a;line-height:1;">${leader.total}</div>
+      <div style="text-align:right;flex:none;padding-left:12px;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:40px;color:#b6ff3a;line-height:1;">${valOf(leader)}</div>
       <div style="font-size:10px;letter-spacing:.14em;color:#5f7567;font-weight:700;">POINTS</div></div>
     </div>
   </div>
@@ -101,18 +116,20 @@ function viewStandings() {
     <div style="font-size:11px;color:#7fd0a0;">tap a name for the receipts</div>
   </div>
   ${rows}
-  <div style="font-size:11px;color:#5f7567;text-align:center;margin-top:10px;line-height:1.5;">Points = Phase 1 only so far (provisional, live). The bar shows R32 qualifier picks landed.<br>Phases 2 &amp; 3 still locked — plenty of time to bottle it.</div>`;
+  <div style="font-size:11px;color:#5f7567;text-align:center;margin-top:10px;line-height:1.5;">${footnote}</div>`;
 }
 
 // ---------- Players ----------
 function viewPlayers() {
+  const mode = state.standMode;
+  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
   const cards = STAND.map(p => {
     const [rb, rf] = medal(p.rank);
     const w = TEAM[p.q1] || { flag: '', name: p.q1 };
     return `<button data-player="${esc(p.name)}" style="text-align:left;padding:13px;background:#0e1d14;border:1px solid #1c3a28;border-radius:14px;cursor:pointer;color:#eef5ec;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-family:'JetBrains Mono';font-weight:800;font-size:12px;background:${rb};color:${rf};">${p.rank}</span>
-        <span style="font-family:'JetBrains Mono';font-weight:800;color:#b6ff3a;font-size:20px;">${p.total}</span></div>
+        <span style="font-family:'JetBrains Mono';font-weight:800;color:#b6ff3a;font-size:20px;">${valOf(p)}</span></div>
       <div style="font-family:'Barlow Condensed';font-weight:800;font-size:19px;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name)}</div>
       <div style="font-size:11px;color:#5f7567;">${esc(p.nick || '')}&nbsp;</div>
       <div style="margin-top:10px;padding-top:9px;border-top:1px dashed #1c3a28;font-size:9px;letter-spacing:.1em;color:#5f7567;font-weight:700;">PICKED TO LIFT IT</div>
@@ -226,6 +243,11 @@ function viewRules() {
     row('<b style="color:#ffce3a;">Q6</b> · No. of games past 90 mins (QF, SF, 3rd, Final)', '7', '7'))}`;
 }
 
+// ---------- Phase 2 stubs (filled in Tasks 5/7/9) ----------
+function viewBracket() { return '<div style="padding:40px;text-align:center;color:#5f7567;">People’s Bracket — coming in Task 7</div>'; }
+function viewBuild()   { return '<div style="padding:40px;text-align:center;color:#5f7567;">Build your bracket — coming in Task 5</div>'; }
+function viewMatches() { return '<div style="padding:40px;text-align:center;color:#5f7567;">Matches — coming in Task 9</div>'; }
+
 // ---------- Player detail overlay ----------
 function renderOverlay() {
   const o = $overlay();
@@ -264,7 +286,7 @@ function renderOverlay() {
         <div style="display:flex;align-items:center;gap:13px;">
           <div style="width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:12px;font-family:'JetBrains Mono';font-weight:800;font-size:20px;background:${rb};color:${rf};">${p.rank}</div>
           <div style="flex:1;min-width:0;"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:28px;line-height:1;">${esc(p.name)}</div><div style="font-size:12px;color:#5f7567;">${esc(p.nick || '')}&nbsp;</div></div>
-          <div style="text-align:right;flex:none;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:30px;color:#b6ff3a;line-height:1;">${p.total}</div><div style="font-size:10px;letter-spacing:.12em;color:#5f7567;font-weight:700;">POINTS</div></div>
+          <div style="text-align:right;flex:none;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:30px;color:#b6ff3a;line-height:1;">${p.p1}</div><div style="font-size:10px;letter-spacing:.12em;color:#5f7567;font-weight:700;">POINTS</div></div>
         </div>
         <div style="display:flex;gap:8px;margin-top:16px;">${tile('QUALIFIERS', p.q)}${tile('GROUP BONUS', p.g)}${tile('Q1–Q3', p.b)}</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:20px 0 4px;letter-spacing:.03em;">PHASE 1 · R32 PICKS</div>
@@ -285,7 +307,9 @@ function renderOverlay() {
 // ---------- Events ----------
 document.addEventListener('click', (e) => {
   const nav = e.target.closest('[data-tab]');
-  if (nav) { state.tab = nav.dataset.tab; state.selected = null; render(); return; }
+  if (nav) { state.tab = nav.dataset.tab; state.selected = null; state.openMatch = null; render(); return; }
+  const seg = e.target.closest('[data-mode]');
+  if (seg) { state.standMode = seg.dataset.mode; recompute(); render(); return; }
   const close = e.target.closest('[data-close]');
   if (close) { state.selected = null; renderOverlay(); return; }
   const pl = e.target.closest('[data-player]');
