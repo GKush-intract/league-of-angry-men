@@ -1,7 +1,7 @@
 {
   "planPath": "docs/superpowers/plans/2026-06-26-wc2026-phase2-input.md",
   "tasks": [
-    { "id": 0, "subject": "Task 0: Config + data fields + validation", "status": "pending",
+    { "id": 0, "subject": "Task 0: Config + data fields + validation", "status": "completed",
       "description": "Add SHEET_ENDPOINT config (config.js), Phase-2 data fields (data.json meta.phase=2 + phase2Deadline; players bracket/q4/q5/p2), and extend validate-data.mjs (pure validate() export) with tests.\n\n```json:metadata\n{\"files\":[\"config.js\",\"data.json\",\"scripts/validate-data.mjs\",\"test/validate.test.mjs\"],\"verifyCommand\":\"node scripts/validate-data.mjs && node --test test/\",\"acceptanceCriteria\":[\"config.js exports SHEET_ENDPOINT=''\",\"meta.phase=2 + valid phase2Deadline\",\"validator accepts optional bracket/q4/q5/p2 and rejects malformed\",\"tests green\"]}\n```" },
     { "id": 1, "subject": "Task 1: Bracket derivation in compute.js", "status": "pending", "blockedBy": [0],
       "description": "Add pure seedTeams/seedIndex/r32Pairings/regions to compute.js (mirrors prototype 257-267) with node:test coverage.\n\n```json:metadata\n{\"files\":[\"compute.js\",\"test/compute.test.mjs\"],\"verifyCommand\":\"node --test test/compute.test.mjs\",\"acceptanceCriteria\":[\"seedTeams returns 32 [12 winners,12 runners,8 thirds]\",\"r32Pairings 1-v-32\",\"regions 8x [2j,2j+1]\",\"seedIndex maps code->pos\"]}\n```" },
@@ -26,5 +26,5 @@
     { "id": 11, "subject": "Task 11: Full verification pass", "status": "pending", "blockedBy": [4, 5, 6, 7, 8, 9, 10],
       "description": "End-to-end verification: full test suite, validator, Playwright over 6 tabs and 4 build states; then finish the branch.\n\n```json:metadata\n{\"files\":[],\"verifyCommand\":\"node --test test/ && node scripts/validate-data.mjs\",\"acceptanceCriteria\":[\"all tests pass\",\"validator exit 0\",\"6 tabs no console errors\",\"build states + preview submit + locked verified\",\"finishing-a-development-branch for merge/PR\"]}\n```" }
   ],
-  "lastUpdated": "2026-06-26T08:30:00Z"
+  "lastUpdated": "2026-06-26T09:05:00Z"
 }
