@@ -115,6 +115,7 @@ export function buildStandings(players, proj, previousRanks = {}, mode = 'p1') {
     const p1 = s.total, p2 = p.p2 || 0;
     return { ...p, ...s, p1, p2, total: p1 + p2 };
   });
+  // mode: 'p1' (default) | 'p2' | 'total'; any other value ranks by p1
   const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
   scored.sort((a, b) => valOf(b) - valOf(a) || b.total - a.total || b.q - a.q || a.name.localeCompare(b.name));
   return scored.map((p, i) => {

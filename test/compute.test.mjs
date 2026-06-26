@@ -190,3 +190,29 @@ test('buildStandings ranks by mode', () => {
   assert.equal(byP2[0].name, 'A'); // p2: A=50 > B=0
   assert.equal(byP2[0].total, 50); assert.equal(byP1[0].total, 10);
 });
+
+test('buildStandings total mode and tiebreak chain', () => {
+  const proj = { qualified: new Set(), groupQ: {}, top2: {}, started: {}, best8: new Set() };
+  // total mode: p1+p2 decides, overriding what p1 alone would pick.
+  const totalPlayers = [
+    { name: 'LowP1', b: 5, picks: {}, p2: 30 },  // p1=5,  total=35
+    { name: 'HighP1', b: 20, picks: {}, p2: 0 },  // p1=20, total=20
+  ];
+  const byTotal = buildStandings(totalPlayers, proj, {}, 'total');
+  assert.equal(byTotal[0].name, 'LowP1');  // 35 > 20 even though p1 is lower
+  assert.equal(byTotal[0].total, 35);
+
+  // tiebreak: equal valueForMode (p2=7) -> fall back to total desc.
+  const tieTotal = buildStandings([
+    { name: 'X', b: 0, picks: {}, p2: 7 },  // p1=0, total=7
+    { name: 'Y', b: 5, picks: {}, p2: 7 },  // p1=5, total=12
+  ], proj, {}, 'p2');
+  assert.equal(tieTotal[0].name, 'Y');  // equal p2 -> higher total wins
+
+  // tiebreak: fully equal scores -> fall back to name asc.
+  const tieName = buildStandings([
+    { name: 'Zed', b: 0, picks: {}, p2: 0 },
+    { name: 'Abe', b: 0, picks: {}, p2: 0 },
+  ], proj, {}, 'total');
+  assert.equal(tieName[0].name, 'Abe');  // all equal -> name ascending
+});
