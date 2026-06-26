@@ -37,7 +37,7 @@ export function buildPayload(ctx, M) {
 export function submitBracket(ctx, M) {
   const payload = buildPayload(ctx, M);
   if (SHEET_ENDPOINT) {
-    try { fetch(SHEET_ENDPOINT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload }); } catch (e) {}
+    fetch(SHEET_ENDPOINT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload }).catch(() => {});
   }
   ctx.state.submitState = 'done'; ctx.state.lastPayload = payload; ctx.state.copied = false;
   ctx.rerender();
@@ -199,7 +199,7 @@ export function renderBuild(ctx) {
       : pickCount < 24 ? (24 - pickCount) + ' bracket picks to go.'
         : (!state.q4 || !state.q5) ? 'Answer Q4 and Q5 to finish.'
           : (SHEET_ENDPOINT ? 'Saves straight to the league Google Sheet.' : 'Preview mode — copy the JSON and send it to the organizer.');
-  const submit = locked ? '' : `<button data-submit ${submitDisabled ? 'disabled' : ''} style="${submitStyle}">${submitLabel}</button>
+  const submit = (locked || state.submitState === 'done') ? '' : `<button data-submit ${submitDisabled ? 'disabled' : ''} style="${submitStyle}">${submitLabel}</button>
     <div style="font-size:11px;color:#5f7567;text-align:center;margin-top:9px;line-height:1.5;">${submitHint}</div>`;
 
   // ---------- confirmation panel ----------
@@ -235,7 +235,7 @@ export function handleBuildEvent(ctx, target) {
   const submitEl = target.closest('[data-submit]');
   if (submitEl && !submitEl.disabled) { return submitBracket(ctx, bracketModel(ctx.TABLES, ctx.PROJ)); }
   const copyEl = target.closest('[data-copy]');
-  if (copyEl) { if (navigator.clipboard) navigator.clipboard.writeText(state.lastPayload); state.copied = true; return rerender(); }
+  if (copyEl) { if (navigator.clipboard) navigator.clipboard.writeText(state.lastPayload).then(() => { state.copied = true; rerender(); }).catch(() => {}); return; }
   const resetEl = target.closest('[data-reset]');
   if (resetEl) { state.submitState = 'idle'; return rerender(); }
 }
