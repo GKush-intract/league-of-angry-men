@@ -1,8 +1,12 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS } from './compute.js';
 
-const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false };
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
 let DATA, TABLES, PROJ, STAND, TEAM, POT;
+
+// Value-for-mode for standings/squad display (NOT the ranking authority — that's
+// the separate valOf inside buildStandings in compute.js, which takes mode as a param).
+const valOf = (p) => state.standMode === 'p2' ? p.p2 : state.standMode === 'total' ? p.total : p.p1;
 
 const $view = () => document.getElementById('view');
 const $overlay = () => document.getElementById('overlay');
@@ -62,7 +66,6 @@ function statTile(label, val, color) {
 function viewStandings() {
   const n = STAND.length, leader = STAND[0];
   const mode = state.standMode;
-  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
   const denom = { p1: 71, p2: 72, total: 200 }[mode] || 71;
   const leaderLabel = { p1: 'PHASE 1 LEADER', p2: 'PHASE 2 LEADER', total: 'OVERALL LEADER' }[mode] || 'PHASE 1 LEADER';
   const footnote = mode === 'p2'
@@ -121,8 +124,6 @@ function viewStandings() {
 
 // ---------- Players ----------
 function viewPlayers() {
-  const mode = state.standMode;
-  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
   const cards = STAND.map(p => {
     const [rb, rf] = medal(p.rank);
     const w = TEAM[p.q1] || { flag: '', name: p.q1 };
@@ -148,6 +149,7 @@ function fmtDate(d) {
   const [y, m, day] = d.split('-');
   return `${+day} ${(MONTHS[+m - 1] || '').toUpperCase()}`;
 }
+// Retained for Task 9 (Matches view reuses this body) — intentionally not in the views map.
 function viewSchedule() {
   const ms = (DATA.matches || []).slice().sort(
     (a, b) => (a.date || '').localeCompare(b.date || '') || a.g.localeCompare(b.g));
@@ -179,6 +181,7 @@ function viewSchedule() {
 }
 
 // ---------- Groups ----------
+// Retained for Task 9 (Matches view reuses this body) — intentionally not in the views map.
 function viewGroups() {
   let html = `<div style="margin:16px 2px 12px;">
     <div style="font-family:'Barlow Condensed';font-weight:800;font-size:26px;line-height:1;">GROUP STAGE</div>
