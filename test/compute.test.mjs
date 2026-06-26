@@ -177,3 +177,16 @@ test('seedIndex maps code to seed position', () => {
   assert.equal(seedIndex(seed)[seed[0].code], 0);
   assert.equal(seedIndex(seed)[seed[31].code], 31);
 });
+
+test('buildStandings ranks by mode', () => {
+  const proj = { qualified: new Set(), groupQ: {}, top2: {}, started: {}, best8: new Set() };
+  const players = [
+    { name: 'A', b: 0, picks: {}, p2: 50 },
+    { name: 'B', b: 10, picks: {}, p2: 0 },
+  ];
+  const byP1 = buildStandings(players, proj, {}, 'p1');
+  assert.equal(byP1[0].name, 'B'); // p1: B=10 > A=0
+  const byP2 = buildStandings(players, proj, {}, 'p2');
+  assert.equal(byP2[0].name, 'A'); // p2: A=50 > B=0
+  assert.equal(byP2[0].total, 50); assert.equal(byP1[0].total, 10);
+});

@@ -109,12 +109,16 @@ export function scorePlayer(player, proj) {
   return { q, g, b, total: q + g + b };
 }
 
-export function buildStandings(players, proj, previousRanks = {}) {
-  const scored = players.map(p => ({ ...p, ...scorePlayer(p, proj) }));
-  scored.sort((a, b) => b.total - a.total || b.q - a.q || a.name.localeCompare(b.name));
+export function buildStandings(players, proj, previousRanks = {}, mode = 'p1') {
+  const scored = players.map(p => {
+    const s = scorePlayer(p, proj);          // {q, g, b, total: q+g+b}
+    const p1 = s.total, p2 = p.p2 || 0;
+    return { ...p, ...s, p1, p2, total: p1 + p2 };
+  });
+  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
+  scored.sort((a, b) => valOf(b) - valOf(a) || b.total - a.total || b.q - a.q || a.name.localeCompare(b.name));
   return scored.map((p, i) => {
-    const rank = i + 1;
-    const prev = previousRanks[p.name];
+    const rank = i + 1, prev = previousRanks[p.name];
     return { ...p, rank, mv: (prev == null ? 0 : prev - rank) };
   });
 }
