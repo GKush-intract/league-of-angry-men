@@ -118,3 +118,36 @@ export function buildStandings(players, proj, previousRanks = {}) {
     return { ...p, rank, mv: (prev == null ? 0 : prev - rank) };
   });
 }
+
+// Qualified-32 seed: [12 group winners, 12 runners-up, 8 best-3rd teams].
+// proj.best8 is a Set of group letters whose 3rd-placed team qualifies.
+export function seedTeams(tables, proj) {
+  const winners = [], seconds = [], thirds = [];
+  for (const L of GROUP_LETTERS) {
+    const st = tables[L] || [];
+    if (st[0]) winners.push(st[0]);
+    if (st[1]) seconds.push(st[1]);
+    if (proj.best8.has(L) && st[2]) thirds.push(st[2]);
+  }
+  return [...winners, ...seconds, ...thirds].slice(0, 32);
+}
+
+export function seedIndex(seed) {
+  const idx = {};
+  seed.forEach((t, i) => { idx[t.code] = i; });
+  return idx;
+}
+
+// R32 match i (0-15) = (seed[i], seed[31-i]).
+export function r32Pairings(seed) {
+  const out = [];
+  for (let i = 0; i < 16; i++) out.push({ id: i, a: seed[i], b: seed[31 - i] });
+  return out;
+}
+
+// Region j (0-7) feeds from R32 matches 2j and 2j+1.
+export function regions() {
+  const out = [];
+  for (let j = 0; j < 8; j++) out.push({ id: j, m: [2 * j, 2 * j + 1] });
+  return out;
+}

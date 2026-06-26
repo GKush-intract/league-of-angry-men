@@ -122,3 +122,57 @@ test('buildStandings: sorts and computes movement', () => {
   assert.equal(st[0].mv, 1);
   assert.equal(st[1].mv, -1);
 });
+
+// ---- Phase 2: bracket derivation ----
+import { seedTeams, r32Pairings, regions, seedIndex } from '../compute.js';
+
+function fixtureTables() {
+  // 12 groups A-L, 4 teams each; codes G<letter><1..4>; pts descending by index.
+  const groups = {}, tables = {};
+  'ABCDEFGHIJKL'.split('').forEach((L, gi) => {
+    groups[L] = [0,1,2,3].map(i => [`${L}${i+1}`.padEnd(3,'X').slice(0,3), `Team ${L}${i+1}`, '🏳']);
+  });
+  // Build official-style tables so order is deterministic: team i has pts (4-i).
+  'ABCDEFGHIJKL'.split('').forEach(L => {
+    tables[L] = groups[L].map((t, i) => ({ code: t[0], p: 3, w: 3-i, d: 0, l: i, gf: 9-i, ga: i, gd: 9-2*i, pts: (3-i)*3 }));
+  });
+  return { groups, tables };
+}
+
+test('seedTeams orders winners, runners-up, then 8 best thirds', () => {
+  const { groups, tables } = fixtureTables();
+  const T = resolveTables(groups, {}, tables);
+  const proj = projectedQualifiers(T, null);
+  const seed = seedTeams(T, proj);
+  assert.equal(seed.length, 32);
+  // first 12 are each group's winner (index 0)
+  assert.deepEqual(seed.slice(0,12).map(t => t.code), 'ABCDEFGHIJKL'.split('').map(L => T[L][0].code));
+  // next 12 are runners-up
+  assert.deepEqual(seed.slice(12,24).map(t => t.code), 'ABCDEFGHIJKL'.split('').map(L => T[L][1].code));
+  // last 8 are thirds from the 8 best-third groups
+  assert.equal(seed.slice(24).length, 8);
+});
+
+test('r32Pairings is classic 1-v-32', () => {
+  const { groups, tables } = fixtureTables();
+  const T = resolveTables(groups, {}, tables);
+  const seed = seedTeams(T, projectedQualifiers(T, null));
+  const r32 = r32Pairings(seed);
+  assert.equal(r32.length, 16);
+  assert.equal(r32[0].a.code, seed[0].code);
+  assert.equal(r32[0].b.code, seed[31].code);
+  assert.equal(r32[15].a.code, seed[15].code);
+  assert.equal(r32[15].b.code, seed[16].code);
+});
+
+test('regions feed from consecutive r32 matches', () => {
+  assert.deepEqual(regions().map(r => r.m), [[0,1],[2,3],[4,5],[6,7],[8,9],[10,11],[12,13],[14,15]]);
+});
+
+test('seedIndex maps code to seed position', () => {
+  const { groups, tables } = fixtureTables();
+  const T = resolveTables(groups, {}, tables);
+  const seed = seedTeams(T, projectedQualifiers(T, null));
+  assert.equal(seedIndex(seed)[seed[0].code], 0);
+  assert.equal(seedIndex(seed)[seed[31].code], 31);
+});
