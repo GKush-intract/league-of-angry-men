@@ -153,8 +153,8 @@ function fmtDate(d) {
   const [y, m, day] = d.split('-');
   return `${+day} ${(MONTHS[+m - 1] || '').toUpperCase()}`;
 }
-// Retained for Task 9 (Matches view reuses this body) — intentionally not in the views map.
-function viewSchedule() {
+// Matches → FIXTURES sub-view body (reused by viewMatches).
+function renderFixtures() {
   const ms = (DATA.matches || []).slice().sort(
     (a, b) => (a.date || '').localeCompare(b.date || '') || a.g.localeCompare(b.g));
   let html = `<div style="margin:16px 2px 6px;">
@@ -185,8 +185,8 @@ function viewSchedule() {
 }
 
 // ---------- Groups ----------
-// Retained for Task 9 (Matches view reuses this body) — intentionally not in the views map.
-function viewGroups() {
+// Matches → TABLES sub-view body (reused by viewMatches).
+function renderTables() {
   let html = `<div style="margin:16px 2px 12px;">
     <div style="font-family:'Barlow Condensed';font-weight:800;font-size:26px;line-height:1;">GROUP STAGE</div>
     <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Live tables. Green = top 2 (in). Gold = 3rd-placed team currently qualifying (best-8).</div></div>`;
@@ -341,7 +341,92 @@ function viewBracket() {
   return `${header}${controlBar}${tree}`;
 }
 
-function viewMatches() { return '<div style="padding:40px;text-align:center;color:#5f7567;">Matches — coming in Task 9</div>'; }
+// ---------- Matches (Fixtures · Tables · Knockout) ----------
+function viewMatches() {
+  const sub = state.matchSub || 'fixtures';
+  const subDef = [['fixtures', 'FIXTURES'], ['groups', 'TABLES'], ['knockout', 'KNOCKOUT']];
+  const seg = `<div style="display:flex;gap:6px;margin:12px 0;padding:4px;background:#0a1813;border:1px solid #1c3a28;border-radius:12px;">
+    ${subDef.map(([k, label]) => `<button data-sub="${k}" style="flex:1;padding:8px 4px;border:0;border-radius:9px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.06em;background:${sub === k ? '#1a7a43' : 'transparent'};color:${sub === k ? '#eafff0' : '#7fd0a0'};">${label}</button>`).join('')}
+  </div>`;
+  const header = `<div style="margin:16px 2px 10px;">
+    <div style="font-family:'Barlow Condensed';font-weight:800;font-size:26px;line-height:1;">MATCHES</div>
+    <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Group stage · 12 groups · top 2 + 8 best 3rds advance to R32.</div></div>`;
+  const body = sub === 'groups' ? renderTables() : sub === 'knockout' ? renderKnockout() : renderFixtures();
+  return `${header}${seg}${body}`;
+}
+
+function renderKnockout() {
+  const koDate = DATA.meta && DATA.meta.koDate, koTime = DATA.meta && DATA.meta.koTime;
+  const when = (i) => {
+    const d = koDate && koDate[i], t = koTime && koTime[i];
+    if (!d) return 'DATE TBC';
+    return fmtDate(d) + (t ? ' · ' + t : '');
+  };
+  const grayCode = '#7a8a7f';
+  // 5 columns: R32 (real provisional ties from M.r32), then placeholder rounds.
+  const COLS = [
+    { label: 'ROUND OF 32', range: 'Tie 1–16' },
+    { label: 'ROUND OF 16', range: 'Tie 1–8' },
+    { label: 'QUARTERFINAL', range: 'Tie 1–4' },
+    { label: 'SEMIFINAL', range: 'Tie 1–2' },
+    { label: 'FINAL', range: 'Champion' },
+  ];
+  const counts = [16, 8, 4, 2, 1];
+
+  const teamRow = (flag, code, color) =>
+    `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;"><span style="font-size:13px;">${flag || '⚪'}</span><span style="flex:1;font-size:12px;font-weight:700;color:${color};">${esc(code)}</span></div>`;
+
+  const card = (inner) => `<div style="background:#0c1710;border:1px solid #1c3a28;border-radius:9px;overflow:hidden;">${inner}</div>`;
+
+  const colsHtml = COLS.map((col, ci) => {
+    let cards = '';
+    if (ci === 0) {
+      cards = M.r32.map((m, i) => {
+        const ta = TEAM[m.a.code] || { flag: m.a.flag || '' };
+        const tb = TEAM[m.b.code] || { flag: m.b.flag || '' };
+        return card(
+          teamRow(ta.flag, m.a.code, grayCode) +
+          `<div style="height:1px;background:#1c3a28;"></div>` +
+          teamRow(tb.flag, m.b.code, grayCode) +
+          `<div style="padding:4px 8px 6px;font-size:8.5px;color:#5f7567;font-weight:600;letter-spacing:.02em;border-top:1px solid #122a1c;">${when(i)}</div>`);
+      }).join('');
+    } else {
+      cards = Array.from({ length: counts[ci] }, () => card(
+        teamRow('⚪', 'TBD', '#5f7567') +
+        `<div style="height:1px;background:#1c3a28;"></div>` +
+        teamRow('⚪', 'TBD', '#5f7567'))).join('');
+    }
+    return `<div style="flex:1;min-width:144px;display:flex;flex-direction:column;">
+      <div style="margin-bottom:9px;">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:12px;letter-spacing:.05em;color:#b6ff3a;">${col.label}</div>
+        <div style="font-size:9px;color:#5f7567;font-weight:600;">${col.range}</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:8px;">${cards}</div>
+    </div>`;
+  }).join('');
+
+  const bracket = `<div style="font-size:11px;color:#5f7567;margin:2px 2px 12px;line-height:1.5;">The road to the Final. Matchups fill in as the group stage finishes — these are provisional from current standings.</div>
+    <div class="scrollx" style="overflow:auto;-webkit-overflow-scrolling:touch;margin:0 -4px 18px;padding:0 4px 10px;">
+      <div style="display:flex;gap:12px;min-width:780px;align-items:stretch;">${colsHtml}</div>
+    </div>`;
+
+  // Knockout schedule list — one row per R32 tie.
+  const listRows = M.r32.map((m, i) => {
+    const ta = TEAM[m.a.code] || { flag: m.a.flag || '' };
+    const tb = TEAM[m.b.code] || { flag: m.b.flag || '' };
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:6px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;">
+      <span style="font-size:9px;font-weight:700;color:#5f7567;width:78px;flex:none;font-family:'JetBrains Mono';">${when(i)}</span>
+      <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:13px;font-weight:600;color:${grayCode};white-space:nowrap;">${esc(m.a.code)}</span><span style="font-size:15px;">${ta.flag || ''}</span></div>
+      <span style="font-size:10px;color:#5f7567;font-weight:700;">v</span>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:15px;">${tb.flag || ''}</span><span style="font-size:13px;font-weight:600;color:${grayCode};white-space:nowrap;">${esc(m.b.code)}</span></div>
+    </div>`;
+  }).join('');
+
+  const list = `<div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;margin:4px 2px 4px;">KNOCKOUT SCHEDULE</div>
+    <div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;color:#7fd0a0;font-size:12px;margin:14px 2px 8px;">ROUND OF 32 · <span style="color:#5f7567;">Tie 1–16</span></div>
+    ${listRows}`;
+
+  return bracket + list;
+}
 
 // ---------- Supporter overlay (R32 tie / R16 region) ----------
 function renderSupporterOverlay() {
@@ -500,6 +585,8 @@ document.addEventListener('click', (e) => {
   if (state.tab === 'build') { handleBuildEvent(buildCtx(), e.target); return; }
   const seg = e.target.closest('[data-mode]');
   if (seg) { state.standMode = seg.dataset.mode; recompute(); render(); return; }
+  const sub = e.target.closest('[data-sub]');
+  if (sub) { state.matchSub = sub.dataset.sub; render(); return; }
   const z = e.target.closest('[data-zoom]');
   if (z) { state.zoom = Math.round((Math.min(1.4, Math.max(0.6, state.zoom + (z.dataset.zoom === 'in' ? 0.2 : -0.2)))) * 10) / 10; render(); return; }
   const op = e.target.closest('[data-open]');
