@@ -44,5 +44,11 @@ test('accepts optional phase-2 player fields', () => {
 test('rejects malformed bracket', () => {
   const data = baseData();
   data.players[0].bracket = { r32: { '0': 123 } }; // non-string code
-  assert.ok(validate(data).errors.length > 0);
+  assert.ok(validate(data).errors.some(e => e.includes('bracket.r32')));
+});
+
+test('rejects NaN p2', () => {
+  const data = baseData();
+  data.players[0].p2 = NaN;
+  assert.ok(validate(data).errors.some(e => e.includes('p2')));
 });
