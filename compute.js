@@ -138,7 +138,10 @@ export function seedIndex(seed) {
   return idx;
 }
 
-// R32 match i (0-15) = (seed[i], seed[31-i]).
+// R32 match i (0-15) = (seed[i], seed[31-i]). Always returns length 16 because
+// regions() hard-references match ids 0-15. Expects a complete 32-element seed;
+// callers (e.g. the Build tab) must gate on a fully-resolved table — on a short
+// seed the tail pairings will have b === undefined.
 export function r32Pairings(seed) {
   const out = [];
   for (let i = 0; i < 16; i++) out.push({ id: i, a: seed[i], b: seed[31 - i] });

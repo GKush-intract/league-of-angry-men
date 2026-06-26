@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
+  seedTeams, r32Pairings, regions, seedIndex,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -124,7 +125,6 @@ test('buildStandings: sorts and computes movement', () => {
 });
 
 // ---- Phase 2: bracket derivation ----
-import { seedTeams, r32Pairings, regions, seedIndex } from '../compute.js';
 
 function fixtureTables() {
   // 12 groups A-L, 4 teams each; codes G<letter><1..4>; pts descending by index.
@@ -149,8 +149,9 @@ test('seedTeams orders winners, runners-up, then 8 best thirds', () => {
   assert.deepEqual(seed.slice(0,12).map(t => t.code), 'ABCDEFGHIJKL'.split('').map(L => T[L][0].code));
   // next 12 are runners-up
   assert.deepEqual(seed.slice(12,24).map(t => t.code), 'ABCDEFGHIJKL'.split('').map(L => T[L][1].code));
-  // last 8 are thirds from the 8 best-third groups
-  assert.equal(seed.slice(24).length, 8);
+  // last 8 are thirds from the 8 best-third groups, A->L order
+  const thirdLs = 'ABCDEFGHIJKL'.split('').filter(L => proj.best8.has(L));
+  assert.deepEqual(seed.slice(24).map(t => t.code), thirdLs.map(L => T[L][2].code));
 });
 
 test('r32Pairings is classic 1-v-32', () => {
