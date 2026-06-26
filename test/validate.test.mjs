@@ -29,3 +29,20 @@ test('validate: real data.json reconciles cleanly (no errors, all totals 32)', a
   assert.equal(errors.length, 0, errors.join('; '));
   assert.equal(warnings.length, 0, warnings.join('; '));
 });
+
+function baseData() {
+  return JSON.parse(JSON.stringify(good));
+}
+
+test('accepts optional phase-2 player fields', () => {
+  const data = baseData();
+  data.players[0].bracket = { r32: { '0': 'BRA' }, r16: { '0': 'BRA' } };
+  data.players[0].q4 = 'BRA'; data.players[0].q5 = 'KOR'; data.players[0].p2 = 6;
+  assert.deepEqual(validate(data).errors, []);
+});
+
+test('rejects malformed bracket', () => {
+  const data = baseData();
+  data.players[0].bracket = { r32: { '0': 123 } }; // non-string code
+  assert.ok(validate(data).errors.length > 0);
+});
