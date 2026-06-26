@@ -50,3 +50,41 @@ test('parsePicksCsv keeps latest per player and maps to bracket', () => {
   assert.equal(out.Sam.bracket.r16['0'], 'BBB');
   assert.equal(out.Sam.q4, 'BRA');
 });
+
+test('parsePicksCsv drops codes not in validCodes (no phantom entries)', () => {
+  const header = ['submittedAt','player','nick',
+    ...Array.from({length:16},(_,i)=>`r32_${i+1}`),
+    ...Array.from({length:8},(_,i)=>`r16_${i+1}`),'q4','q5'].join(',');
+  // r32_1 = ZZZ (invalid), q4 = ZZZ (invalid), q5 = KOR (valid)
+  const row = ['2026-06-27T10:00:00Z','Sam','',
+    'ZZZ', ...Array(15).fill(''), ...Array(8).fill(''), 'ZZZ','KOR'].join(',');
+  const out = parsePicksCsv([header,row].join('\n'), new Set(['AAA','BBB','BRA','KOR']));
+  assert.equal(out.Sam.bracket.r32['0'], undefined); // invalid code dropped
+  assert.equal(out.Sam.q4, undefined);               // invalid q4 dropped
+  assert.equal(out.Sam.q5, 'KOR');                   // valid q5 kept
+});
+
+test('parsePicksCsv keeps column alignment with a quoted comma field', () => {
+  const header = ['submittedAt','player','nick',
+    ...Array.from({length:16},(_,i)=>`r32_${i+1}`),
+    ...Array.from({length:8},(_,i)=>`r16_${i+1}`),'q4','q5'].join(',');
+  // nick is quoted and contains a comma — must not shift the bracket columns
+  const row = ['2026-06-27T10:00:00Z','Sam','"hi, there"',
+    'AAA', ...Array(15).fill(''), 'AAA', ...Array(7).fill(''), 'BRA','KOR'].join(',');
+  const out = parsePicksCsv([header,row].join('\n'), new Set(['AAA','BBB','BRA','KOR']));
+  assert.equal(out.Sam.bracket.r32['0'], 'AAA'); // still aligned despite the comma
+  assert.equal(out.Sam.bracket.r16['0'], 'AAA');
+  assert.equal(out.Sam.q4, 'BRA');
+});
+
+test('parsePicksCsv: blank submittedAt does not overwrite a valid newer row', () => {
+  const header = ['submittedAt','player','nick',
+    ...Array.from({length:16},(_,i)=>`r32_${i+1}`),
+    ...Array.from({length:8},(_,i)=>`r16_${i+1}`),'q4','q5'].join(',');
+  const row = (ts, r32_1) => [ts,'Sam','',
+    r32_1, ...Array(15).fill(''), ...Array(8).fill(''), 'BRA','KOR'].join(',');
+  // valid 12:00 row first, then a blank-timestamp row for the same player
+  const csv = [header, row('2026-06-27T12:00:00Z','BBB'), row('','AAA')].join('\n');
+  const out = parsePicksCsv(csv, new Set(['AAA','BBB','BRA','KOR']));
+  assert.equal(out.Sam.bracket.r32['0'], 'BBB'); // valid newer row wins
+});

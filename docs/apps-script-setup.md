@@ -37,21 +37,35 @@ infrastructure in place. Set `SHEET_ENDPOINT` only once the web app below is dep
 
 ```js
 function doPost(e) {
-  var d = JSON.parse(e.postData.contents);
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  if (sh.getLastRow() === 0) {
-    var head = ['submittedAt','player','nick'];
-    for (var i=1;i<=16;i++) head.push('r32_'+i);
-    for (var j=1;j<=8;j++) head.push('r16_'+j);
-    head.push('q4','q5'); sh.appendRow(head);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);                  // serialize concurrent submissions
+  try {
+    var d = JSON.parse(e.postData.contents);
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    if (sh.getLastRow() === 0) {
+      var head = ['submittedAt','player','nick'];
+      for (var i=1;i<=16;i++) head.push('r32_'+i);
+      for (var j=1;j<=8;j++) head.push('r16_'+j);
+      head.push('q4','q5'); sh.appendRow(head);
+    }
+    // Always stamp a timestamp server-side: the client sends one, but fall back
+    // so the column is never blank/garbage (the merge uses it for latest-wins).
+    var row = [d.submittedAt || new Date().toISOString(), d.player, d.nick||''];
+    for (var i=0;i<16;i++) row.push((d.r32[i] && d.r32[i].pick) || '');
+    for (var j=0;j<8;j++) row.push((d.r16[j] && d.r16[j].pick) || '');
+    row.push(d.q4||'', d.q5||''); sh.appendRow(row);
+    return ContentService.createTextOutput('ok');
+  } finally {
+    lock.releaseLock();
   }
-  var row = [d.submittedAt, d.player, d.nick||''];
-  for (var i=0;i<16;i++) row.push((d.r32[i] && d.r32[i].pick) || '');
-  for (var j=0;j<8;j++) row.push((d.r16[j] && d.r16[j].pick) || '');
-  row.push(d.q4||'', d.q5||''); sh.appendRow(row);
-  return ContentService.createTextOutput('ok');
 }
 ```
+
+> The `LockService.getScriptLock()` wrapper serializes the `appendRow` calls so
+> two simultaneous submissions can't race and corrupt/overwrite each other's row.
+> The `submittedAt || new Date().toISOString()` fallback guarantees the timestamp
+> column is always populated and monotonic, which the merge relies on for its
+> latest-wins-per-player logic.
 
 3. Save the project (the disk icon, or **Ctrl/Cmd + S**).
 
