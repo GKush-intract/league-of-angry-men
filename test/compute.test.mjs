@@ -4,6 +4,7 @@ import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
   seedTeams, r32Pairings, regions, seedIndex,
+  aggregateBrackets,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -215,4 +216,19 @@ test('buildStandings total mode and tiebreak chain', () => {
     { name: 'Abe', b: 0, picks: {}, p2: 0 },
   ], proj, {}, 'total');
   assert.equal(tieName[0].name, 'Abe');  // all equal -> name ascending
+});
+
+test('aggregateBrackets tallies counts and backers', () => {
+  const r32 = [{ id: 0, a: { code: 'AAA' }, b: { code: 'BBB' } }];
+  const regs = [{ id: 0, m: [0, 1] }];
+  const players = [
+    { name: 'X', bracket: { r32: { '0': 'AAA' }, r16: { '0': 'AAA' } } },
+    { name: 'Y', bracket: { r32: { '0': 'AAA' }, r16: { '0': 'BBB' } } },
+    { name: 'Z' }, // no bracket
+  ];
+  const agg = aggregateBrackets(players, r32, regs);
+  assert.equal(agg.r32[0]['AAA'].count, 2);
+  assert.deepEqual(agg.r32[0]['AAA'].backers, ['X', 'Y']);
+  assert.equal(agg.r16[0]['AAA'].count, 1);
+  assert.equal(agg.r16[0]['BBB'].count, 1);
 });

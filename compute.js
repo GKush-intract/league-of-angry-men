@@ -159,3 +159,24 @@ export function regions() {
   for (let j = 0; j < 8; j++) out.push({ id: j, m: [2 * j, 2 * j + 1] });
   return out;
 }
+
+// Aggregate stored player brackets. players: [{name, bracket:{r32:{mid:code}, r16:{rid:code}}}]
+export function aggregateBrackets(players, r32, regs) {
+  const out = { r32: {}, r16: {} };
+  for (const m of r32) out.r32[m.id] = {};
+  for (const reg of regs) out.r16[reg.id] = {};
+  for (const p of players) {
+    const b = p.bracket; if (!b) continue;
+    for (const m of r32) {
+      const code = b.r32 && b.r32[m.id]; if (!code) continue;
+      (out.r32[m.id][code] ||= { count: 0, backers: [] });
+      out.r32[m.id][code].count++; out.r32[m.id][code].backers.push(p.name);
+    }
+    for (const reg of regs) {
+      const code = b.r16 && b.r16[reg.id]; if (!code) continue;
+      (out.r16[reg.id][code] ||= { count: 0, backers: [] });
+      out.r16[reg.id][code].count++; out.r16[reg.id][code].backers.push(p.name);
+    }
+  }
+  return out;
+}
