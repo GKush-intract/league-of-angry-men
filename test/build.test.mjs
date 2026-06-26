@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyR32, applyR16, pickCounts, buildPayload } from '../build.js';
+import { parsePicksCsv } from '../scripts/fetch-picks.mjs';
 
 test('applyR16 then invalidating R32 clears the R16 pick', () => {
   let picks = { r32: {}, r16: {} };
@@ -34,4 +35,18 @@ test('buildPayload produces 16 r32 + 8 r16 entries with matchup strings', () => 
   assert.equal(p.r32[0].tie, 1); assert.match(p.r32[0].matchup, / v /);
   assert.equal(p.r32[0].pick, 'A0'); assert.equal(p.r16[0].region, 1);
   assert.equal(p.q4, 'A0'); assert.equal(p.q5, 'B0');
+});
+
+test('parsePicksCsv keeps latest per player and maps to bracket', () => {
+  const header = ['submittedAt','player','nick',
+    ...Array.from({length:16},(_,i)=>`r32_${i+1}`),
+    ...Array.from({length:8},(_,i)=>`r16_${i+1}`),'q4','q5'].join(',');
+  const row = (ts, p, r32_1, r16_1) => [ts,p,'',
+    r32_1, ...Array(15).fill(''), r16_1, ...Array(7).fill(''), 'BRA','KOR'].join(',');
+  const csv = [header, row('2026-06-27T10:00:00Z','Sam','AAA','AAA'),
+                       row('2026-06-27T12:00:00Z','Sam','BBB','BBB')].join('\n');
+  const out = parsePicksCsv(csv, new Set(['AAA','BBB','BRA','KOR']));
+  assert.equal(out.Sam.bracket.r32['0'], 'BBB'); // latest wins (tie 1 -> matchId 0)
+  assert.equal(out.Sam.bracket.r16['0'], 'BBB');
+  assert.equal(out.Sam.q4, 'BRA');
 });
