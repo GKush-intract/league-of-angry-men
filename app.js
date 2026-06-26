@@ -431,8 +431,37 @@ function renderOverlay() {
       <span style="width:50px;flex:none;font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:${isBonus ? '#ffce3a' : '#7fd0a0'};">GRP ${L}</span>
       <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap;">${chips}</div>${badge}</div>`;
   }).join('');
-  const tile = (lbl, val) => `<div style="flex:1;padding:10px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;text-align:center;"><div style="font-size:9px;letter-spacing:.1em;color:#5f7567;font-weight:700;">${lbl}</div><div style="font-family:'JetBrains Mono';font-weight:800;font-size:18px;color:#eef5ec;margin-top:3px;">${val}</div></div>`;
+  // Phase tiles: P1 (neutral), P2 (gold accent), P3 (locked).
+  const ptile = (lbl, val, opts = {}) => `<div style="flex:1;padding:10px;background:#0e1d14;border:1px solid ${opts.border || '#1c3a28'};border-radius:11px;text-align:center;"><div style="font-size:9px;letter-spacing:.1em;color:${opts.lblColor || '#5f7567'};font-weight:700;">${lbl}</div><div style="font-family:'JetBrains Mono';font-weight:800;font-size:18px;color:${opts.valColor || '#eef5ec'};margin-top:3px;">${val}</div></div>`;
   const bonus = (q, lbl, ans) => `<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;margin-bottom:7px;"><span style="font-family:'JetBrains Mono';font-weight:800;color:#ffce3a;font-size:13px;width:26px;">${q}</span><span style="flex:1;font-size:11px;color:#5f7567;">${lbl}</span><span style="font-family:'Barlow Condensed';font-weight:700;font-size:15px;">${esc(ans)}</span></div>`;
+  // Phase-2 mini-bracket: 8 region cells, each = two R32 picks (advancing one lime) → QF chip.
+  const miniBracket = !p.bracket
+    ? `<div style="background:#0c1710;border:1px dashed #1c3a28;border-radius:11px;padding:18px;text-align:center;color:#5f7567;font-size:12px;">No Phase 2 bracket yet</div>`
+    : `<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">${M.regions.map(reg => {
+        const r16pick = p.bracket.r16?.[reg.id];
+        const r32cells = reg.m.map(mid => {
+          const c = p.bracket.r32?.[mid];
+          const t = TEAM[c] || { flag: '', name: c };
+          const wins = !!c && r16pick === c;
+          return `<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 6px;border-radius:6px;font-size:10.5px;font-weight:600;white-space:nowrap;background:${wins ? 'rgba(182,255,58,.1)' : 'rgba(255,255,255,.04)'};color:${wins ? '#b6ff3a' : '#9fb3a6'};"><span style="font-size:12px;">${t.flag || ''}</span>${esc(c || '—')}</span>`;
+        }).join('');
+        const qf = TEAM[r16pick] || { flag: '', name: r16pick };
+        return `<div style="background:#0c1710;border:1px solid #1c3a28;border-radius:11px;padding:9px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:#7fd0a0;margin-bottom:7px;">R${reg.id + 1}</div>
+          <div style="display:flex;align-items:stretch;gap:0;">
+            <div style="flex:none;display:flex;flex-direction:column;gap:5px;justify-content:center;">${r32cells}</div>
+            <div style="width:15px;flex:none;position:relative;">
+              <div style="position:absolute;left:0;top:25%;width:7px;height:1px;background:#2c5a38;"></div>
+              <div style="position:absolute;left:0;top:75%;width:7px;height:1px;background:#2c5a38;"></div>
+              <div style="position:absolute;left:7px;top:25%;height:50%;width:1px;background:#2c5a38;"></div>
+              <div style="position:absolute;left:7px;top:50%;width:8px;height:1px;background:#2c5a38;"></div>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;align-items:center;">
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:7px;font-size:11px;font-weight:700;background:rgba(182,255,58,.12);color:#b6ff3a;border:1px solid #2c5a38;width:100%;white-space:nowrap;overflow:hidden;"><span style="font-size:12px;">${qf.flag || ''}</span>${esc(r16pick || '—')}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}</div>`;
   o.innerHTML = `
     <div data-close="1" style="position:fixed;inset:0;z-index:60;background:rgba(3,8,5,.82);backdrop-filter:blur(3px);"></div>
     <div style="position:fixed;z-index:61;left:0;right:0;bottom:0;top:7%;max-width:680px;margin:0 auto;background:#0a1813;border:1px solid #2c5a38;border-radius:22px 22px 0 0;overflow-y:auto;">
@@ -446,18 +475,20 @@ function renderOverlay() {
           <div style="flex:1;min-width:0;"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:28px;line-height:1;">${esc(p.name)}</div><div style="font-size:12px;color:#5f7567;">${esc(p.nick || '')}&nbsp;</div></div>
           <div style="text-align:right;flex:none;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:30px;color:#b6ff3a;line-height:1;">${p.p1}</div><div style="font-size:10px;letter-spacing:.12em;color:#5f7567;font-weight:700;">POINTS</div></div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:16px;">${tile('QUALIFIERS', p.q)}${tile('GROUP BONUS', p.g)}${tile('Q1–Q3', p.b)}</div>
+        <div style="display:flex;gap:8px;margin-top:16px;">${ptile('PHASE 1', p.p1)}${ptile('PHASE 2', p.p2 || 0, { border: '#2c5a38', lblColor: '#ffce3a' })}${ptile('PHASE 3', '🔒', { valColor: '#5f7567' })}</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:20px 0 4px;letter-spacing:.03em;">PHASE 1 · R32 PICKS</div>
         <div style="font-size:11px;color:#5f7567;margin-bottom:8px;">Teams backed to reach the Round of 32. Green = on track, red = trailing, grey = not started. <b style="color:#ffce3a;">Gold +2</b> = every qualifier from that group nailed (group bonus).</div>
         ${picksRows}
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 8px;letter-spacing:.03em;">BONUS QUESTIONS</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 4px;letter-spacing:.03em;">PHASE 2 · BRACKET</div>
+        <div style="font-size:11px;color:#5f7567;margin-bottom:10px;">R32 picks (left) → the team they sent to the QF (right). The advancing finalist is highlighted lime.</div>
+        ${miniBracket}
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 8px;letter-spacing:.03em;">PHASE 1 BONUS</div>
         ${bonus('Q1', 'WORLD CUP WINNER', (w.flag + ' ' + (w.name || p.q1)))}
         ${bonus('Q2', 'GOLDEN BOOT', p.q2)}
         ${bonus('Q3', 'GOLDEN GLOVE', p.q3)}
-        <div style="display:flex;gap:8px;margin-top:14px;">
-          <div style="flex:1;padding:13px;background:#0c1710;border:1px dashed #1c3a28;border-radius:11px;text-align:center;color:#5f7567;"><div style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;">PHASE 2</div><div style="font-size:11px;margin-top:3px;">🔒 Locked</div></div>
-          <div style="flex:1;padding:13px;background:#0c1710;border:1px dashed #1c3a28;border-radius:11px;text-align:center;color:#5f7567;"><div style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;">PHASE 3</div><div style="font-size:11px;margin-top:3px;">🔒 Locked</div></div>
-        </div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 8px;letter-spacing:.03em;">PHASE 2 BONUS</div>
+        ${bonus('Q4', 'MOST GOALS (R32+R16)', TEAM[p.q4]?.name || '—')}
+        ${bonus('Q5', 'MOST CONCEDED (R32+R16)', TEAM[p.q5]?.name || '—')}
       </div>
     </div>`;
 }
