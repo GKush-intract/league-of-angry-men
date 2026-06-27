@@ -52,3 +52,18 @@ test('rejects NaN p2', () => {
   data.players[0].p2 = NaN;
   assert.ok(validate(data).errors.some(e => e.includes('p2')));
 });
+
+test('accepts a valid bracketR32 override (16 pairs of real codes)', () => {
+  const data = baseData();
+  const codes = 'ABCDEFGHIJKL'.split('').flatMap(L => ['1', '2', '3', '4'].map(n => L + n)); // 48 group codes
+  data.bracketR32 = Array.from({ length: 16 }, (_, i) => [codes[i], codes[i + 16]]);
+  assert.deepEqual(validate(data).errors, []);
+});
+
+test('rejects malformed bracketR32 (wrong length or unknown code)', () => {
+  const short = baseData(); short.bracketR32 = [['A1', 'A2']];
+  assert.ok(validate(short).errors.some(e => e.includes('16')));
+  const bad = baseData();
+  bad.bracketR32 = Array.from({ length: 16 }, () => ['ZZ9', 'A1']); // ZZ9 not in any group
+  assert.ok(validate(bad).errors.some(e => e.includes('bracketR32')));
+});

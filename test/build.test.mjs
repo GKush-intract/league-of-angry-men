@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyR32, applyR16, pickCounts, buildPayload } from '../build.js';
+import { applyR32, applyR16, pickCounts, buildPayload, bracketModel } from '../build.js';
 import { parsePicksCsv } from '../scripts/fetch-picks.mjs';
 
 test('applyR16 then invalidating R32 clears the R16 pick', () => {
@@ -87,4 +87,19 @@ test('parsePicksCsv: blank submittedAt does not overwrite a valid newer row', ()
   const csv = [header, row('2026-06-27T12:00:00Z','BBB'), row('','AAA')].join('\n');
   const out = parsePicksCsv(csv, new Set(['AAA','BBB','BRA','KOR']));
   assert.equal(out.Sam.bracket.r32['0'], 'BBB'); // valid newer row wins
+});
+
+test('bracketModel uses explicit bracketR32 (real draw) in bracket order', () => {
+  const ex = Array.from({ length: 16 }, (_, i) => [`H${i}`.padEnd(3, 'X').slice(0, 3), `A${i}`.padEnd(3, 'X').slice(0, 3)]);
+  const TEAM = { [ex[0][0]]: { name: 'Home Zero', flag: '🏠' } };
+  const M = bracketModel(null, null, ex, TEAM);
+  assert.equal(M.r32.length, 16);
+  assert.equal(M.regions.length, 8);
+  assert.equal(M.seed.length, 32);
+  assert.deepEqual(M.regions[0].m, [0, 1]);          // R16 still fed by consecutive ties
+  assert.equal(M.r32[0].a.code, ex[0][0]);
+  assert.equal(M.r32[0].b.code, ex[0][1]);
+  assert.equal(M.r32[0].a.name, 'Home Zero');         // mapped from TEAM when present
+  assert.equal(M.r32[1].a.name, ex[1][0]);            // falls back to code when not in TEAM
+  assert.equal(M.r32[15].a.code, ex[15][0]);
 });

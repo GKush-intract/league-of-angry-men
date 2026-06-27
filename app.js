@@ -37,7 +37,7 @@ function recompute() {
   // from raw results when those aren't present in data.json.
   TABLES = resolveTables(DATA.groups, DATA.results || {}, DATA.tables);
   PROJ = projectedQualifiers(TABLES, DATA.bestThirds || null);
-  M = bracketModel(TABLES, PROJ);
+  M = bracketModel(TABLES, PROJ, DATA.bracketR32, TEAM);
   AGG = aggregateBrackets(DATA.players, M.r32, M.regions);
   STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {}, state.standMode);
 }

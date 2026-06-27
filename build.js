@@ -2,7 +2,16 @@
 import { seedTeams, seedIndex, r32Pairings, regions } from './compute.js';
 import { SHEET_ENDPOINT } from './config.js';
 
-export function bracketModel(TABLES, PROJ) {
+// Build the knockout model. If data.json supplies an explicit `bracketR32` (16
+// [aCode, bCode] pairs in bracket order — the REAL FIFA draw), use it verbatim;
+// otherwise fall back to the derived 1-v-32 re-seed from the group tables.
+export function bracketModel(TABLES, PROJ, explicitR32, TEAM) {
+  if (Array.isArray(explicitR32) && explicitR32.length === 16) {
+    const mk = c => ({ code: c, name: (TEAM && TEAM[c] && TEAM[c].name) || c, flag: (TEAM && TEAM[c] && TEAM[c].flag) || '' });
+    const r32 = explicitR32.map((pair, i) => ({ id: i, a: mk(pair[0]), b: mk(pair[1]) }));
+    const seed = r32.flatMap(m => [m.a, m.b]);
+    return { seed, idx: seedIndex(seed), r32, regions: regions() };
+  }
   const seed = seedTeams(TABLES, PROJ);
   return { seed, idx: seedIndex(seed), r32: r32Pairings(seed), regions: regions() };
 }
@@ -62,7 +71,7 @@ function teamBtn(code, flag, selCode, locked, attrs) {
 
 export function renderBuild(ctx) {
   const { DATA, TABLES, PROJ, TEAM, state } = ctx;
-  const M = bracketModel(TABLES, PROJ);
+  const M = bracketModel(TABLES, PROJ, DATA.bracketR32, TEAM);
   const locked = isLocked(DATA);
   const picks = state.picks || { r32: {}, r16: {} };
   const { total: pickCount } = pickCounts(picks, M);
@@ -233,7 +242,7 @@ export function handleBuildEvent(ctx, target) {
   const r16el = target.closest('[data-r16]');
   if (r16el) { state.picks = applyR16(state.picks, +r16el.dataset.r16, r16el.dataset.code); state.submitState = 'idle'; return rerender(); }
   const submitEl = target.closest('[data-submit]');
-  if (submitEl && !submitEl.disabled) { return submitBracket(ctx, bracketModel(ctx.TABLES, ctx.PROJ)); }
+  if (submitEl && !submitEl.disabled) { return submitBracket(ctx, bracketModel(ctx.TABLES, ctx.PROJ, ctx.DATA.bracketR32, ctx.TEAM)); }
   const copyEl = target.closest('[data-copy]');
   if (copyEl) { if (navigator.clipboard) navigator.clipboard.writeText(state.lastPayload).then(() => { state.copied = true; rerender(); }).catch(() => {}); return; }
   const resetEl = target.closest('[data-reset]');

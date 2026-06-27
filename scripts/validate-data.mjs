@@ -48,6 +48,23 @@ export function validate(data) {
     }
   }
 
+  // Optional explicit R32 bracket override (the real FIFA draw): 16 [a,b] code pairs.
+  if (data.bracketR32 !== undefined) {
+    const all = new Set(Object.values(codeByGroup).flatMap(s => [...s]));
+    if (!Array.isArray(data.bracketR32) || data.bracketR32.length !== 16) {
+      errors.push(`bracketR32 must be an array of 16 [a,b] pairs`);
+    } else {
+      data.bracketR32.forEach((pair, i) => {
+        if (!Array.isArray(pair) || pair.length !== 2) {
+          errors.push(`bracketR32[${i}] must be a [a,b] pair`); return;
+        }
+        for (const c of pair)
+          if (typeof c !== 'string' || !all.has(c))
+            errors.push(`bracketR32[${i}]: ${c} is not a valid team code`);
+      });
+    }
+  }
+
   // Phase-2 meta deadline
   if (data.meta?.phase2Deadline !== undefined && Number.isNaN(Date.parse(data.meta.phase2Deadline)))
     errors.push('meta.phase2Deadline must be an ISO date string');
