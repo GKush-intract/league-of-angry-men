@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-06-26T06:37:02Z",
+    "lastUpdated": "2026-06-27T05:21:13Z",
     "phase": 1,
     "entryFee": 1000
   },
@@ -272,24 +272,24 @@
   },
   "results": {},
   "previousRanks": {
-    "Dale shylla": 1,
-    "Mohit Agarwal": 2,
-    "Banshan": 3,
-    "Garrick Shanpru": 4,
-    "Pynk": 5,
-    "Shivam Datta": 6,
-    "Banmanlang": 7,
-    "Kushagra": 8,
-    "Luke Shanpru": 9,
-    "Mohit Ghune": 10,
-    "Sangam": 11,
-    "Sanjog": 12,
-    "Vaibhav Gupta": 13,
+    "Mohit Agarwal": 1,
+    "Banshan": 2,
+    "Dale shylla": 3,
+    "Shivam Datta": 4,
+    "Garrick Shanpru": 5,
+    "Kushagra": 6,
+    "Mohit Ghune": 7,
+    "Sangam": 8,
+    "Sanjog": 9,
+    "Banmanlang": 10,
+    "Saket": 11,
+    "Vaibhav Gupta": 12,
+    "Krishna": 13,
     "Manav": 14,
-    "Saket": 15,
-    "Artet": 16,
-    "Krishna": 17,
-    "Zac": 18,
+    "Pynk": 15,
+    "Zac": 16,
+    "Artet": 17,
+    "Luke Shanpru": 18,
     "Prasoon Chaturvedi": 19,
     "Omargh Lanong": 20
   },
@@ -1894,139 +1894,139 @@
     ],
     "G": [
       {
-        "code": "EGY",
-        "p": 2,
+        "code": "BEL",
+        "p": 3,
         "w": 1,
-        "d": 1,
+        "d": 2,
         "l": 0,
-        "gf": 4,
+        "gf": 6,
         "ga": 2,
+        "gd": 4,
+        "pts": 5
+      },
+      {
+        "code": "EGY",
+        "p": 3,
+        "w": 1,
+        "d": 2,
+        "l": 0,
+        "gf": 5,
+        "ga": 3,
         "gd": 2,
-        "pts": 4
+        "pts": 5
       },
       {
         "code": "IRN",
-        "p": 2,
+        "p": 3,
         "w": 0,
-        "d": 2,
+        "d": 3,
         "l": 0,
-        "gf": 2,
-        "ga": 2,
+        "gf": 3,
+        "ga": 3,
         "gd": 0,
-        "pts": 2
-      },
-      {
-        "code": "BEL",
-        "p": 2,
-        "w": 0,
-        "d": 2,
-        "l": 0,
-        "gf": 1,
-        "ga": 1,
-        "gd": 0,
-        "pts": 2
+        "pts": 3
       },
       {
         "code": "NZL",
-        "p": 2,
+        "p": 3,
         "w": 0,
         "d": 1,
-        "l": 1,
-        "gf": 3,
-        "ga": 5,
-        "gd": -2,
+        "l": 2,
+        "gf": 4,
+        "ga": 10,
+        "gd": -6,
         "pts": 1
       }
     ],
     "H": [
       {
         "code": "ESP",
-        "p": 2,
-        "w": 1,
+        "p": 3,
+        "w": 2,
         "d": 1,
         "l": 0,
-        "gf": 4,
+        "gf": 5,
         "ga": 0,
-        "gd": 4,
-        "pts": 4
-      },
-      {
-        "code": "URU",
-        "p": 2,
-        "w": 0,
-        "d": 2,
-        "l": 0,
-        "gf": 3,
-        "ga": 3,
-        "gd": 0,
-        "pts": 2
+        "gd": 5,
+        "pts": 7
       },
       {
         "code": "CPV",
-        "p": 2,
+        "p": 3,
         "w": 0,
-        "d": 2,
+        "d": 3,
         "l": 0,
         "gf": 2,
         "ga": 2,
         "gd": 0,
+        "pts": 3
+      },
+      {
+        "code": "URU",
+        "p": 3,
+        "w": 0,
+        "d": 2,
+        "l": 1,
+        "gf": 3,
+        "ga": 4,
+        "gd": -1,
         "pts": 2
       },
       {
         "code": "KSA",
-        "p": 2,
+        "p": 3,
         "w": 0,
-        "d": 1,
+        "d": 2,
         "l": 1,
         "gf": 1,
         "ga": 5,
         "gd": -4,
-        "pts": 1
+        "pts": 2
       }
     ],
     "I": [
       {
         "code": "FRA",
-        "p": 2,
-        "w": 2,
+        "p": 3,
+        "w": 3,
         "d": 0,
         "l": 0,
-        "gf": 6,
-        "ga": 1,
-        "gd": 5,
-        "pts": 6
+        "gf": 10,
+        "ga": 2,
+        "gd": 8,
+        "pts": 9
       },
       {
         "code": "NOR",
-        "p": 2,
+        "p": 3,
         "w": 2,
         "d": 0,
-        "l": 0,
-        "gf": 7,
-        "ga": 3,
-        "gd": 4,
+        "l": 1,
+        "gf": 8,
+        "ga": 7,
+        "gd": 1,
         "pts": 6
       },
       {
         "code": "SEN",
-        "p": 2,
-        "w": 0,
+        "p": 3,
+        "w": 1,
         "d": 0,
         "l": 2,
-        "gf": 3,
+        "gf": 8,
         "ga": 6,
-        "gd": -3,
-        "pts": 0
+        "gd": 2,
+        "pts": 3
       },
       {
         "code": "IRQ",
-        "p": 2,
+        "p": 3,
         "w": 0,
         "d": 0,
-        "l": 2,
+        "l": 3,
         "gf": 1,
-        "ga": 7,
-        "gd": -6,
+        "ga": 12,
+        "gd": -11,
         "pts": 0
       }
     ],
@@ -2174,10 +2174,10 @@
     "ECU",
     "BIH",
     "PAR",
+    "SEN",
+    "IRN",
     "CRO",
-    "KOR",
-    "ALG",
-    "SCO"
+    "KOR"
   ],
   "matches": [
     {
@@ -2545,14 +2545,18 @@
       "h": "EGY",
       "a": "IRN",
       "date": "2026-06-26",
-      "done": false
+      "hs": 1,
+      "as": 1,
+      "done": true
     },
     {
       "g": "G",
       "h": "NZL",
       "a": "BEL",
       "date": "2026-06-26",
-      "done": false
+      "hs": 1,
+      "as": 5,
+      "done": true
     },
     {
       "g": "H",
@@ -2595,14 +2599,18 @@
       "h": "CPV",
       "a": "KSA",
       "date": "2026-06-26",
-      "done": false
+      "hs": 0,
+      "as": 0,
+      "done": true
     },
     {
       "g": "H",
       "h": "URU",
       "a": "ESP",
       "date": "2026-06-26",
-      "done": false
+      "hs": 0,
+      "as": 1,
+      "done": true
     },
     {
       "g": "I",
@@ -2645,14 +2653,18 @@
       "h": "NOR",
       "a": "FRA",
       "date": "2026-06-26",
-      "done": false
+      "hs": 1,
+      "as": 4,
+      "done": true
     },
     {
       "g": "I",
       "h": "SEN",
       "a": "IRQ",
       "date": "2026-06-26",
-      "done": false
+      "hs": 5,
+      "as": 0,
+      "done": true
     },
     {
       "g": "J",
