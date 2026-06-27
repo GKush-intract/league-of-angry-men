@@ -109,10 +109,28 @@ export function scorePlayer(player, proj) {
   return { q, g, b, total: q + g + b };
 }
 
-export function buildStandings(players, proj, previousRanks = {}, mode = 'p1') {
+// Phase-2 score from actual knockout results. ko = { r16:[codes that reached the
+// Round of 16], qf:[codes that reached the Quarterfinals], q4, q5 }. Scoring per the
+// app's stated rule: each correct R32 winner = 2, R16 winner = 4, Q4 = 4, Q5 = 4 (max 72).
+// Set-based (matches a picked team to the set that actually advanced), so it does NOT
+// depend on tie/region indices lining up — robust to bracket re-ordering. Partial
+// results score partially (only filled-in rounds count).
+export function scorePhase2(player, ko) {
+  if (!ko) return 0;
+  const r16 = new Set(ko.r16 || []), qf = new Set(ko.qf || []);
+  const b = player.bracket || {};
+  let pts = 0;
+  for (const c of Object.values(b.r32 || {})) if (r16.has(c)) pts += 2;
+  for (const c of Object.values(b.r16 || {})) if (qf.has(c)) pts += 4;
+  if (ko.q4 && player.q4 === ko.q4) pts += 4;
+  if (ko.q5 && player.q5 === ko.q5) pts += 4;
+  return pts;
+}
+
+export function buildStandings(players, proj, previousRanks = {}, mode = 'p1', ko = null) {
   const scored = players.map(p => {
     const s = scorePlayer(p, proj);          // {q, g, b, total: q+g+b}
-    const p1 = s.total, p2 = p.p2 || 0;
+    const p1 = s.total, p2 = ko ? scorePhase2(p, ko) : (p.p2 || 0);
     return { ...p, ...s, p1, p2, total: p1 + p2 };
   });
   // mode: 'p1' (default) | 'p2' | 'total'; any other value ranks by p1

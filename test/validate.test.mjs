@@ -67,3 +67,14 @@ test('rejects malformed bracketR32 (wrong length or unknown code)', () => {
   bad.bracketR32 = Array.from({ length: 16 }, () => ['ZZ9', 'A1']); // ZZ9 not in any group
   assert.ok(validate(bad).errors.some(e => e.includes('bracketR32')));
 });
+
+test('accepts valid koResults, rejects unknown codes', () => {
+  const ok = baseData();
+  ok.koResults = { r16: ['A1', 'B2'], qf: ['A1'], q4: 'A1', q5: 'B2' };
+  assert.deepEqual(validate(ok).errors, []);
+  const bad = baseData();
+  bad.koResults = { r16: ['ZZ9'], q4: 'NOPE' };
+  const errs = validate(bad).errors;
+  assert.ok(errs.some(e => e.includes('koResults.r16')));
+  assert.ok(errs.some(e => e.includes('koResults.q4')));
+});

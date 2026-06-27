@@ -39,7 +39,7 @@ function recompute() {
   PROJ = projectedQualifiers(TABLES, DATA.bestThirds || null);
   M = bracketModel(TABLES, PROJ, DATA.bracketR32, TEAM);
   AGG = aggregateBrackets(DATA.players, M.r32, M.regions);
-  STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {}, state.standMode);
+  STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {}, state.standMode, DATA.koResults || null);
 }
 
 function renderNav() {

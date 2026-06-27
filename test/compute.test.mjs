@@ -4,7 +4,7 @@ import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
   seedTeams, r32Pairings, regions, seedIndex,
-  aggregateBrackets, regionTeams,
+  aggregateBrackets, regionTeams, scorePhase2,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -237,4 +237,34 @@ test('aggregateBrackets tallies counts and backers', () => {
   assert.deepEqual(agg.r32[0]['AAA'].backers, ['X', 'Y']);
   assert.equal(agg.r16[0]['AAA'].count, 1);
   assert.equal(agg.r16[0]['BBB'].count, 1);
+});
+
+test('scorePhase2 scores R32(2)/R16(4)/Q4(4)/Q5(4) from actual results', () => {
+  const player = {
+    bracket: { r32: { '0': 'AAA', '1': 'BBB', '2': 'CCC' }, r16: { '0': 'AAA', '1': 'ZZZ' } },
+    q4: 'AAA', q5: 'BBB',
+  };
+  const ko = { r16: ['AAA', 'BBB'], qf: ['AAA'], q4: 'AAA', q5: 'XXX' };
+  // R32: AAA,BBB advanced (+2,+2), CCC didn't = 4; R16: AAA reached QF (+4), ZZZ didn't = 4
+  // Q4: AAA===AAA (+4); Q5: BBB!==XXX (+0)  -> 12
+  assert.equal(scorePhase2(player, ko), 12);
+  assert.equal(scorePhase2(player, null), 0);   // no results yet -> 0
+  assert.equal(scorePhase2({}, ko), 0);          // no bracket -> 0
+  // partial results: only R32 round known -> only R32 points
+  assert.equal(scorePhase2(player, { r16: ['AAA', 'BBB'] }), 4);
+});
+
+test('buildStandings uses live Phase-2 score when koResults provided (ignores manual p2)', () => {
+  const proj = { qualified: new Set(), groupQ: {}, top2: {}, started: {}, best8: new Set() };
+  const players = [
+    { name: 'A', b: 0, picks: {}, bracket: { r32: { '0': 'AAA' } }, p2: 99 },
+    { name: 'B', b: 0, picks: {}, bracket: {}, p2: 50 },
+  ];
+  const ko = { r16: ['AAA'], qf: [] };
+  const s = buildStandings(players, proj, {}, 'p2', ko);
+  assert.equal(s.find(x => x.name === 'A').p2, 2);   // live score, not the manual 99
+  assert.equal(s.find(x => x.name === 'B').p2, 0);
+  // without ko, falls back to the manual p2 field
+  const s2 = buildStandings(players, proj, {}, 'p2');
+  assert.equal(s2.find(x => x.name === 'A').p2, 99);
 });

@@ -65,6 +65,25 @@ export function validate(data) {
     }
   }
 
+  // Optional actual knockout results that drive Phase-2 scoring.
+  if (data.koResults !== undefined) {
+    const all = new Set(Object.values(codeByGroup).flatMap(s => [...s]));
+    const ko = data.koResults;
+    if (typeof ko !== 'object' || ko === null || Array.isArray(ko)) {
+      errors.push('koResults must be an object');
+    } else {
+      for (const round of ['r16', 'qf']) {
+        if (ko[round] === undefined) continue;
+        if (!Array.isArray(ko[round])) { errors.push(`koResults.${round} must be an array`); continue; }
+        for (const c of ko[round])
+          if (typeof c !== 'string' || !all.has(c)) errors.push(`koResults.${round}: ${c} is not a valid team code`);
+      }
+      for (const f of ['q4', 'q5'])
+        if (ko[f] !== undefined && (typeof ko[f] !== 'string' || !all.has(ko[f])))
+          errors.push(`koResults.${f}: ${ko[f]} is not a valid team code`);
+    }
+  }
+
   // Phase-2 meta deadline
   if (data.meta?.phase2Deadline !== undefined && Number.isNaN(Date.parse(data.meta.phase2Deadline)))
     errors.push('meta.phase2Deadline must be an ISO date string');
