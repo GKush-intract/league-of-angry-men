@@ -53,11 +53,14 @@ function renderNav() {
 }
 
 function buildCtx() { return { DATA, TABLES, PROJ, TEAM, state, rerender: render }; }
+let lastRenderedTab = null;
 function render() {
   renderNav();
   const views = { standings: viewStandings, bracket: viewBracket, build: () => renderBuild(buildCtx()), players: viewPlayers, matches: viewMatches, rules: viewRules };
   $view().innerHTML = (views[state.tab] || viewStandings)();
-  window.scrollTo(0, 0);
+  // Only jump to top when the tab actually changes; preserve scroll for in-tab
+  // re-renders (picking a bracket team, zoom, standings-mode/sub-tab toggles).
+  if (state.tab !== lastRenderedTab) { window.scrollTo(0, 0); lastRenderedTab = state.tab; }
   renderOverlay();
 }
 
