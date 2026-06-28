@@ -2,7 +2,7 @@
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, regionTeams } from './compute.js';
 import { renderBuild, handleBuildEvent, bracketModel } from './build.js';
 
-const state = { tab:'standings', selected:null, openMatch:null, standMode:'p1', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
 let DATA, TABLES, PROJ, STAND, TEAM, POT, M, AGG;
 
 // Value-for-mode for standings/squad display (NOT the ranking authority — that's
@@ -13,7 +13,9 @@ const $view = () => document.getElementById('view');
 const $overlay = () => document.getElementById('overlay');
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['build','Build','✏️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
+// Build tab removed once Phase 2 picks closed (the renderBuild route + build.js are
+// kept intact — re-add ['build','Build','✏️'] here to reopen for Phase 3).
+const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
 const medal = (r) => r === 1 ? ['#ffce3a', '#1a1400'] : r === 2 ? ['#cfd8d4', '#10201a'] : r === 3 ? ['#d98b46', '#160d04'] : ['#15301f', '#7fd0a0'];
 function tagFor(rank, n) {
   if (rank === 1) return ['👑 TOP OF THE TABLE', '#ffce3a'];
@@ -106,14 +108,14 @@ function viewStandings() {
         <div style="font-size:10px;color:${mvColor};font-weight:700;margin-top:3px;">${mvText}</div>
       </div></button>`;
   }).join('');
-  const phase2Open = !!DATA.meta?.phase2Deadline && Date.now() < Date.parse(DATA.meta.phase2Deadline);
-  const phase2Banner = phase2Open ? `
-  <button data-tab="build" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:14px 16px;border:1px solid #5a4a1c;border-radius:14px;background:linear-gradient(135deg,rgba(255,206,58,.18),rgba(255,206,58,.06));cursor:pointer;color:#ffce3a;">
+  const hasPicks = DATA.players.some(p => p.bracket);
+  const phase2Banner = hasPicks ? `
+  <button data-tab="bracket" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:14px 16px;border:1px solid #5a4a1c;border-radius:14px;background:linear-gradient(135deg,rgba(255,206,58,.18),rgba(255,206,58,.06));cursor:pointer;color:#ffce3a;">
     <div style="min-width:0;">
-      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.02em;line-height:1;">🎯 PHASE 2 PICKS ARE OPEN</div>
-      <div style="font-size:11px;color:#e9d9a0;margin-top:4px;">Build your knockout bracket · closes 12 AM IST, 29 Jun</div>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.02em;line-height:1;">🗺️ SEE PHASE 2 PICKS</div>
+      <div style="font-size:11px;color:#e9d9a0;margin-top:4px;">Everyone's knockout brackets — the People's Bracket</div>
     </div>
-    <span style="flex:none;font-family:'Barlow Condensed';font-weight:800;font-size:14px;background:#ffce3a;color:#1a1400;padding:8px 14px;border-radius:10px;white-space:nowrap;">SELECT NOW →</span>
+    <span style="flex:none;font-family:'Barlow Condensed';font-weight:800;font-size:14px;background:#ffce3a;color:#1a1400;padding:8px 14px;border-radius:10px;white-space:nowrap;">VIEW →</span>
   </button>` : '';
   return `
   ${phase2Banner}
