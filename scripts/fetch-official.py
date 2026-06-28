@@ -86,7 +86,10 @@ def main():
         flat = ' '.join(str(c) for c in t.columns)
         if 'Pld' in flat and 'Pts' in flat:
             if 'Grp' in flat:
-                thirds = t
+                # The third-placed ranking is the Grp table with a Qualification column.
+                # (A later "Final result" Grp table also exists once the tournament progresses.)
+                if any('qualif' in str(c).lower() for c in t.columns):
+                    thirds = t
             elif len(t) == 4:
                 std.append(t)
     if len(std) != 12 or thirds is None:
@@ -108,7 +111,7 @@ def main():
             sys.exit(f"group standings did not match any known group: {codes}")
         tables[L] = rows
 
-    qcol = next(c for c in thirds.columns if 'qualify' in str(c).lower())
+    qcol = next(c for c in thirds.columns if 'qualif' in str(c).lower())
     tcol = next(c for c in thirds.columns if 'Team' in str(c))
     best = [code(r[tcol]) for _, r in thirds.iterrows() if 'Knockout' in str(r[qcol])]
     if not (1 <= len(best) <= 8):
