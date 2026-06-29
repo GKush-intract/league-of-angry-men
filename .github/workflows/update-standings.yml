@@ -1,8 +1,10 @@
 name: Update standings
 
-# Refresh the official FIFA tables every 12h (free; runs on GitHub's runners which
-# have internet access, unlike the egress-restricted cloud agent). Also runnable
-# on demand from the Actions tab.
+# Phase 2 (knockout) updater: scrape played knockout results from Wikipedia and refresh
+# Phase-2 scoring. The group tables, the R32 bracket, and the player picks are all
+# FINAL/LOCKED now, so we no longer re-scrape them — re-scraping finalized data has no
+# benefit and only risks errors or corruption (e.g. the bracket parser would misread
+# later rounds once they fill in). Run on demand from the Actions tab.
 on:
   workflow_dispatch:
 
@@ -28,24 +30,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install Python deps
-        run: pip install pandas lxml
+        run: pip install lxml
 
       - name: Snapshot ranks (movement baseline)
         run: node scripts/snapshot-ranks.mjs
 
-      - name: Fetch official tables from Wikipedia
-        run: python3 scripts/fetch-official.py
-
-      - name: Update knockout bracket from Wikipedia
-        run: python3 scripts/fetch-knockout.py
-
       - name: Update knockout results (Phase 2 scoring)
         run: python3 scripts/fetch-knockout-results.py
-
-      - name: Sync Phase 2 picks
-        env:
-          PICKS_CSV_URL: ${{ secrets.PICKS_CSV_URL }}
-        run: node scripts/fetch-picks.mjs
 
       - name: Run tests
         run: node --test
@@ -61,6 +52,6 @@ jobs:
             echo "No changes to data.json"
           else
             git add data.json
-            git commit -m "chore: update official tables $(date -u +%Y-%m-%dT%H:%MZ)"
+            git commit -m "chore: update knockout results $(date -u +%Y-%m-%dT%H:%MZ)"
             git push
           fi
