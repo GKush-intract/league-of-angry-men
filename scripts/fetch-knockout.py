@@ -52,6 +52,15 @@ def parse_bracket(html):
     return out[:32]
 
 def main():
+    # Once the bracket is set, NEVER re-scrape it: after knockout matches play, advancing
+    # teams fill the R16+ cells on the source bracket and would be misread as R32
+    # participants, shifting/corrupting the draw. The R32 draw is final, so refuse to
+    # overwrite an already-resolved 16-tie bracketR32.
+    existing = json.load(open('data.json', encoding='utf-8')).get('bracketR32')
+    if isinstance(existing, list) and len(existing) == 16:
+        print("bracketR32 already set (16 ties) — skipping; the R32 draw is final.")
+        return
+
     req = urllib.request.Request(URL, headers={'User-Agent': 'Mozilla/5.0'})
     html = urllib.request.urlopen(req, timeout=60).read().decode('utf-8', 'replace')
     parts = parse_bracket(html)

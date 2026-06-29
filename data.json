@@ -3484,56 +3484,56 @@
       "CAN"
     ],
     [
-      "CAN",
-      "NED"
+      "NED",
+      "MAR"
     ],
     [
-      "MAR",
-      "POR"
+      "POR",
+      "CRO"
     ],
     [
-      "CRO",
-      "ESP"
+      "ESP",
+      "AUT"
     ],
     [
-      "AUT",
-      "USA"
+      "USA",
+      "BIH"
     ],
     [
-      "BIH",
-      "BEL"
+      "BEL",
+      "SEN"
     ],
     [
-      "SEN",
-      "BRA"
+      "BRA",
+      "JPN"
     ],
     [
-      "JPN",
-      "CIV"
+      "CIV",
+      "NOR"
     ],
     [
-      "NOR",
-      "MEX"
+      "MEX",
+      "ECU"
     ],
     [
-      "ECU",
-      "ENG"
+      "ENG",
+      "COD"
     ],
     [
-      "COD",
-      "ARG"
+      "ARG",
+      "CPV"
     ],
     [
-      "CPV",
-      "AUS"
+      "AUS",
+      "EGY"
     ],
     [
-      "EGY",
-      "SUI"
+      "SUI",
+      "ALG"
     ],
     [
-      "ALG",
-      "COL"
+      "COL",
+      "GHA"
     ]
   ],
   "koResults": {
@@ -3541,5 +3541,122 @@
       "CAN"
     ],
     "qf": []
-  }
+  },
+  "koMatches": [
+    {
+      "h": "RSA",
+      "a": "CAN",
+      "date": "2026-06-29",
+      "time": "12:30 AM",
+      "hs": 0,
+      "as": 1,
+      "done": true,
+      "w": "CAN"
+    },
+    {
+      "h": "BRA",
+      "a": "JPN",
+      "date": "2026-06-29",
+      "time": "10:30 PM",
+      "done": false
+    },
+    {
+      "h": "GER",
+      "a": "PAR",
+      "date": "2026-06-30",
+      "time": "2:00 AM",
+      "done": false
+    },
+    {
+      "h": "NED",
+      "a": "MAR",
+      "date": "2026-06-30",
+      "time": "6:30 AM",
+      "done": false
+    },
+    {
+      "h": "CIV",
+      "a": "NOR",
+      "date": "2026-06-30",
+      "time": "10:30 PM",
+      "done": false
+    },
+    {
+      "h": "FRA",
+      "a": "SWE",
+      "date": "2026-07-01",
+      "time": "2:30 AM",
+      "done": false
+    },
+    {
+      "h": "MEX",
+      "a": "ECU",
+      "date": "2026-07-01",
+      "time": "6:30 AM",
+      "done": false
+    },
+    {
+      "h": "ENG",
+      "a": "COD",
+      "date": "2026-07-01",
+      "time": "9:30 PM",
+      "done": false
+    },
+    {
+      "h": "BEL",
+      "a": "SEN",
+      "date": "2026-07-02",
+      "time": "1:30 AM",
+      "done": false
+    },
+    {
+      "h": "USA",
+      "a": "BIH",
+      "date": "2026-07-02",
+      "time": "5:30 AM",
+      "done": false
+    },
+    {
+      "h": "ESP",
+      "a": "AUT",
+      "date": "2026-07-03",
+      "time": "12:30 AM",
+      "done": false
+    },
+    {
+      "h": "POR",
+      "a": "CRO",
+      "date": "2026-07-03",
+      "time": "4:30 AM",
+      "done": false
+    },
+    {
+      "h": "SUI",
+      "a": "ALG",
+      "date": "2026-07-03",
+      "time": "8:30 AM",
+      "done": false
+    },
+    {
+      "h": "AUS",
+      "a": "EGY",
+      "date": "2026-07-03",
+      "time": "11:30 PM",
+      "done": false
+    },
+    {
+      "h": "ARG",
+      "a": "CPV",
+      "date": "2026-07-04",
+      "time": "3:30 AM",
+      "done": false
+    },
+    {
+      "h": "COL",
+      "a": "GHA",
+      "date": "2026-07-04",
+      "time": "7:00 AM",
+      "done": false
+    }
+  ]
 }

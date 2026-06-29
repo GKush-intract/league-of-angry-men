@@ -371,77 +371,81 @@ function viewMatches() {
 }
 
 function renderKnockout() {
-  const koDate = DATA.meta && DATA.meta.koDate, koTime = DATA.meta && DATA.meta.koTime;
-  const when = (i) => {
-    const d = koDate && koDate[i], t = koTime && koTime[i];
-    if (!d) return 'DATE TBC';
-    return fmtDate(d) + (t ? ' · ' + t : '');
-  };
-  const grayCode = '#7a8a7f';
-  // 5 columns: R32 (real provisional ties from M.r32), then placeholder rounds.
-  const COLS = [
-    { label: 'ROUND OF 32', range: 'Tie 1–16' },
-    { label: 'ROUND OF 16', range: 'Tie 1–8' },
-    { label: 'QUARTERFINAL', range: 'Tie 1–4' },
-    { label: 'SEMIFINAL', range: 'Tie 1–2' },
-    { label: 'FINAL', range: 'Champion' },
-  ];
-  const counts = [16, 8, 4, 2, 1];
+  // Live knockout bracket driven by the real draw (M.r32 from bracketR32) + scraped
+  // results (DATA.koMatches: per-match IST date/time + score/winner). Later rounds fill
+  // in as winners are known. Kickoff times are IST.
+  const kom = DATA.koMatches || [];
+  const findM = (x, y) => kom.find(m => (m.h === x && m.a === y) || (m.h === y && m.a === x));
+  const winnerOf = (x, y) => { const m = findM(x, y); return (m && m.done) ? m.w : null; };
 
-  const teamRow = (flag, code, color) =>
-    `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;"><span style="font-size:13px;">${flag || '⚪'}</span><span style="flex:1;font-size:12px;font-weight:700;color:${color};">${esc(code)}</span></div>`;
+  const rounds = [(M.r32 || []).map(m => ({ a: m.a.code, b: m.b.code }))];
+  for (let r = 1; r <= 4; r++) {
+    const prev = rounds[r - 1], cur = [];
+    for (let i = 0; i < prev.length; i += 2)
+      cur.push({ a: winnerOf(prev[i].a, prev[i].b), b: winnerOf(prev[i + 1].a, prev[i + 1].b) });
+    rounds.push(cur);
+  }
 
+  const COLS = ['ROUND OF 32', 'ROUND OF 16', 'QUARTERFINAL', 'SEMIFINAL', 'FINAL'];
+  const fmtWhen = (m) => (m && m.date) ? (fmtDate(m.date) + (m.time ? ' · ' + m.time : '')) : 'DATE TBC';
   const card = (inner) => `<div style="background:#0c1710;border:1px solid #1c3a28;border-radius:9px;overflow:hidden;">${inner}</div>`;
-
-  const colsHtml = COLS.map((col, ci) => {
-    let cards = '';
-    if (ci === 0) {
-      cards = M.r32.map((m, i) => {
-        const ta = TEAM[m.a.code] || { flag: m.a.flag || '' };
-        const tb = TEAM[m.b.code] || { flag: m.b.flag || '' };
-        return card(
-          teamRow(ta.flag, m.a.code, grayCode) +
-          `<div style="height:1px;background:#1c3a28;"></div>` +
-          teamRow(tb.flag, m.b.code, grayCode) +
-          `<div style="padding:4px 8px 6px;font-size:8.5px;color:#5f7567;font-weight:600;letter-spacing:.02em;border-top:1px solid #122a1c;">${when(i)}</div>`);
-      }).join('');
+  const sep = `<div style="height:1px;background:#1c3a28;"></div>`;
+  const line = (code, score, isWin, isLoss) => {
+    const t = code ? (TEAM[code] || { flag: '' }) : null;
+    const flag = t ? (t.flag || '⚪') : '⚪';
+    const color = isWin ? '#b6ff3a' : isLoss ? '#5f7567' : (code ? '#cfe0d4' : '#5f7567');
+    const sc = (score != null) ? `<span style="font-family:'JetBrains Mono';font-weight:800;font-size:12px;color:${color};padding-left:6px;">${score}</span>` : '';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;${isLoss ? 'opacity:.5;' : ''}"><span style="font-size:13px;">${flag}</span><span style="flex:1;font-size:12px;font-weight:700;color:${color};">${code ? esc(code) : 'TBD'}</span>${sc}</div>`;
+  };
+  const matchCard = (slot) => {
+    const { a, b } = slot;
+    const m = (a && b) ? findM(a, b) : null;
+    let aS = null, bS = null, aW = false, bW = false, foot;
+    if (m && m.done) {
+      const aHome = m.h === a;
+      aS = aHome ? m.hs : m.as; bS = aHome ? m.as : m.hs;
+      aW = m.w === a; bW = m.w === b;
+      foot = 'FT' + (m.date ? ' · ' + fmtDate(m.date) : '');
     } else {
-      cards = Array.from({ length: counts[ci] }, () => card(
-        teamRow('⚪', 'TBD', '#5f7567') +
-        `<div style="height:1px;background:#1c3a28;"></div>` +
-        teamRow('⚪', 'TBD', '#5f7567'))).join('');
+      foot = fmtWhen(m);
     }
-    return `<div style="flex:1;min-width:144px;display:flex;flex-direction:column;">
-      <div style="margin-bottom:9px;">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:12px;letter-spacing:.05em;color:#b6ff3a;">${col.label}</div>
-        <div style="font-size:9px;color:#5f7567;font-weight:600;">${col.range}</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:8px;">${cards}</div>
-    </div>`;
-  }).join('');
+    const done = !!(m && m.done);
+    return card(line(a, aS, aW, done && !aW) + sep + line(b, bS, bW, done && !bW) +
+      `<div style="padding:4px 8px 6px;font-size:8.5px;color:#5f7567;font-weight:600;letter-spacing:.02em;border-top:1px solid #122a1c;">${foot}</div>`);
+  };
 
-  const bracket = `<div style="font-size:11px;color:#5f7567;margin:2px 2px 12px;line-height:1.5;">The road to the Final. Matchups fill in as the group stage finishes — these are provisional from current standings.</div>
+  const colsHtml = COLS.map((label, ci) => `<div style="flex:1;min-width:150px;display:flex;flex-direction:column;">
+      <div style="margin-bottom:9px;"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:12px;letter-spacing:.05em;color:#b6ff3a;">${label}</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:8px;">${rounds[ci].map(matchCard).join('')}</div>
+    </div>`).join('');
+
+  const bracket = `<div style="font-size:11px;color:#5f7567;margin:2px 2px 12px;line-height:1.5;">The road to the Final — updates live as matches finish. Kickoff times in IST.</div>
     <div class="scrollx" style="overflow:auto;-webkit-overflow-scrolling:touch;margin:0 -4px 18px;padding:0 4px 10px;">
-      <div style="display:flex;gap:12px;min-width:780px;align-items:stretch;">${colsHtml}</div>
+      <div style="display:flex;gap:12px;min-width:820px;align-items:stretch;">${colsHtml}</div>
     </div>`;
 
-  // Knockout schedule list — one row per R32 tie.
-  const listRows = M.r32.map((m, i) => {
-    const ta = TEAM[m.a.code] || { flag: m.a.flag || '' };
-    const tb = TEAM[m.b.code] || { flag: m.b.flag || '' };
-    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:6px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;">
-      <span style="font-size:9px;font-weight:700;color:#5f7567;width:78px;flex:none;font-family:'JetBrains Mono';">${when(i)}</span>
-      <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:13px;font-weight:600;color:${grayCode};white-space:nowrap;">${esc(m.a.code)}</span><span style="font-size:15px;">${ta.flag || ''}</span></div>
-      <span style="font-size:10px;color:#5f7567;font-weight:700;">v</span>
-      <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:15px;">${tb.flag || ''}</span><span style="font-size:13px;font-weight:600;color:${grayCode};white-space:nowrap;">${esc(m.b.code)}</span></div>
+  const sched = kom.slice().sort((x, y) => (x.date || '').localeCompare(y.date || '') || (x.time || '').localeCompare(y.time || ''));
+  let curDate = null, listRows = '';
+  for (const m of sched) {
+    if (m.date !== curDate) {
+      curDate = m.date;
+      listRows += `<div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.14em;color:#7fd0a0;font-size:13px;margin:16px 2px 8px;">${fmtDate(m.date)}</div>`;
+    }
+    const ta = TEAM[m.h] || { flag: '' }, tb = TEAM[m.a] || { flag: '' };
+    const mid = m.done ? `${m.hs} – ${m.as}` : 'v';
+    const midCol = m.done ? '#b6ff3a' : '#5f7567';
+    listRows += `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:6px;background:#0e1d14;border:1px solid #1c3a28;border-radius:11px;">
+      <span style="font-size:9px;font-weight:700;color:#5f7567;width:62px;flex:none;font-family:'JetBrains Mono';">${m.done ? 'FT' : esc(m.time || 'TBC')}</span>
+      <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;"><span style="font-size:13px;font-weight:700;color:${m.done && m.w === m.h ? '#b6ff3a' : '#cfe0d4'};white-space:nowrap;">${esc(m.h)}</span><span style="font-size:15px;">${ta.flag || ''}</span></div>
+      <span style="font-family:'JetBrains Mono';font-weight:800;font-size:13px;color:${midCol};min-width:40px;text-align:center;">${mid}</span>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0;"><span style="font-size:15px;">${tb.flag || ''}</span><span style="font-size:13px;font-weight:700;color:${m.done && m.w === m.a ? '#b6ff3a' : '#cfe0d4'};white-space:nowrap;">${esc(m.a)}</span></div>
     </div>`;
-  }).join('');
-
-  const list = `<div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;margin:4px 2px 4px;">KNOCKOUT SCHEDULE</div>
-    <div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;color:#7fd0a0;font-size:12px;margin:14px 2px 8px;">ROUND OF 32 · <span style="color:#5f7567;">Tie 1–16</span></div>
-    ${listRows}`;
+  }
+  const list = `<div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;margin:4px 2px 4px;">KNOCKOUT SCHEDULE <span style="font-size:11px;color:#5f7567;font-weight:600;">· IST</span></div>${listRows || '<div style="font-size:12px;color:#5f7567;text-align:center;margin-top:16px;">Fixtures syncing…</div>'}`;
 
   return bracket + list;
 }
+
 
 // ---------- Supporter overlay (R32 tie / R16 region) ----------
 function renderSupporterOverlay() {

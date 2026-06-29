@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
-"""Scrape played knockout match results from the 2026 FIFA World Cup knockout-stage
-article and derive Phase-2 scoring inputs into data.json `koResults`:
+"""Scrape the 2026 FIFA World Cup knockout-stage article and write two things to data.json:
 
-  r16 = teams that won their Round-of-32 tie (advanced to the Round of 16)
-  qf  = teams that won their Round-of-16 tie (advanced to the Quarterfinals)
-  q4  = team with the most goals SCORED across R32+R16   (only set once all 24 played)
-  q5  = team with the most goals CONCEDED across R32+R16 (only set once all 24 played)
+  koResults  — Phase-2 scoring inputs:
+                 r16 = teams that won their R32 tie (reached R16)
+                 qf  = teams that won their R16 tie (reached QF)
+                 q4/q5 = most goals scored/conceded across R32+R16 (only once all 24 played)
+  koMatches  — per-match fixtures for the Matches→Knockout view: home/away codes, IST
+                 kickoff date+time, and score/winner when played.
 
-Advancement is derived from match results + the known `bracketR32` draw (no fragile
-bracket-column parsing): for each R32 tie we look up the match between its two teams and
-take the winner; R16 matchups follow from the R32 winners by region; and so on. Partial
-results score partially. Idempotent + safe to run on a schedule.
+Advancement is derived from match results + the known `bracketR32` (no fragile bracket
+parsing). Partial results score partially. Idempotent + safe to run on a schedule.
 
 Usage:  python3 scripts/fetch-knockout-results.py
 Deps:   lxml
 """
-import json, re, os, sys, urllib.request, importlib.util
+import json, re, os, sys, datetime, urllib.request, importlib.util
 from lxml import html as LH
 
 KO_URL = "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_knockout_stage"
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 # Reuse the team-name -> code ALIAS from the sibling fetch-official.py.
 _spec = importlib.util.spec_from_file_location(
@@ -32,8 +32,28 @@ def code(name):
     n = re.sub(r"\s+(men's\s+)?national\s+(football|soccer)\s+team$", "", n, flags=re.I)
     return ALIAS.get(n.strip().lower())
 
+def to_ist(date_iso, time_str):
+    """(local match date + 'h:mm a.m./p.m. UTC±N') -> (IST date 'YYYY-MM-DD', IST 'h:mm AM/PM').
+    Falls back to (date_iso, '') if the time can't be parsed."""
+    if not date_iso:
+        return (None, '')
+    s = (time_str or '').replace('−', '-').replace('−', '-')
+    m = re.search(r'(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\.?.*?UTC\s*([+-]\d{1,2})', s, re.I)
+    if not m:
+        return (date_iso, '')
+    hh, mm, ap, off = int(m.group(1)), int(m.group(2)), m.group(3).lower(), int(m.group(4))
+    if ap == 'p' and hh != 12: hh += 12
+    if ap == 'a' and hh == 12: hh = 0
+    try:
+        y, mo, d = map(int, date_iso.split('-'))
+        dt = datetime.datetime(y, mo, d, hh, mm,
+                               tzinfo=datetime.timezone(datetime.timedelta(hours=off))).astimezone(IST)
+        return (dt.strftime('%Y-%m-%d'), dt.strftime('%I:%M %p').lstrip('0'))
+    except Exception:
+        return (date_iso, '')
+
 def parse_matches(html):
-    """Return played knockout matches as {h, a, hs, as, w} (w = winner code, incl. penalties)."""
+    """All knockout matches with both teams known: {h, a, date, time, done, hs, as, w}."""
     doc = LH.document_fromstring(html)
     out = []
     for b in doc.xpath('//*[contains(@class,"footballbox")]'):
@@ -43,18 +63,20 @@ def parse_matches(html):
         h, a = code(cell('fhome')), code(cell('faway'))
         if not h or not a:
             continue
+        iso = re.search(r'(\d{4}-\d{2}-\d{2})', cell('fdate'))
+        date, time = to_ist(iso.group(1) if iso else None, cell('ftime'))
+        rec = {'h': h, 'a': a, 'date': date, 'time': time}
         m = re.match(r'\s*(\d+)\s*[–-]\s*(\d+)', cell('fscore'))
-        if not m:
-            continue  # not played yet
-        hs, as_ = int(m.group(1)), int(m.group(2))
-        rec = {'h': h, 'a': a, 'hs': hs, 'as': as_}
-        if hs != as_:
-            rec['w'] = h if hs > as_ else a
+        if m:
+            hs, as_ = int(m.group(1)), int(m.group(2))
+            rec.update(hs=hs, **{'as': as_}, done=True)
+            if hs != as_:
+                rec['w'] = h if hs > as_ else a
+            else:  # penalty shootout: winner in the parenthetical (X–Y)
+                pm = re.search(r'\(\s*(\d+)\s*[–-]\s*(\d+)\s*\)', b.text_content())
+                rec['w'] = (h if int(pm.group(1)) > int(pm.group(2)) else a) if pm else None
         else:
-            # Draw after normal/extra time -> penalty shootout. Wikipedia shows the
-            # shootout score in parentheses, e.g. "1–1 (a.e.t.)" + "(4–3)".
-            pm = re.search(r'\(\s*(\d+)\s*[–-]\s*(\d+)\s*\)', b.text_content())
-            rec['w'] = (h if int(pm.group(1)) > int(pm.group(2)) else a) if pm else None
+            rec['done'] = False
         out.append(rec)
     return out
 
@@ -67,35 +89,32 @@ def main():
 
     req = urllib.request.Request(KO_URL, headers={'User-Agent': 'angry-men-predictor/1.0'})
     html = urllib.request.urlopen(req, timeout=60).read().decode('utf-8', 'replace')
-    by_pair = {frozenset((m['h'], m['a'])): m for m in parse_matches(html)}
+    matches = parse_matches(html)
+    by_pair = {frozenset((m['h'], m['a'])): m for m in matches}
 
     def match(x, y):
         return by_pair.get(frozenset((x, y)))
     def winner(x, y):
         m = match(x, y)
-        return m['w'] if m else None
+        return m['w'] if (m and m.get('done')) else None
 
-    # R32 winners (advanced to R16), in bracket order.
-    r16 = [w for a, b in bracket if (w := winner(a, b))]
-
-    # R16 winners (advanced to QF): region j is winner(tie 2j) vs winner(tie 2j+1).
-    qf, r16_played = [], []
+    # R32 winners (reached R16), in bracket order.
+    r16 = [w for x, y in bracket if (w := winner(x, y))]
+    # R16 winners (reached QF): region j is winner(tie 2j) vs winner(tie 2j+1).
+    qf, r16_pairs = [], []
     for j in range(8):
         wa, wb = winner(*bracket[2 * j]), winner(*bracket[2 * j + 1])
         if wa and wb:
-            r16_played.append((wa, wb))
+            r16_pairs.append((wa, wb))
             if (w := winner(wa, wb)):
                 qf.append(w)
-
     ko = {'r16': r16, 'qf': qf}
 
-    # Q4/Q5 ("most goals scored / conceded across R32 + R16") — only meaningful once all
-    # 16 R32 and 8 R16 matches are complete, so don't award them prematurely.
-    r16_matches = [match(wa, wb) for wa, wb in r16_played]
-    if len(r16) == 16 and len(r16_played) == 8 and all(r16_matches) and len(qf) == 8:
-        r32_matches = [match(a, b) for a, b in bracket]
+    # Q4/Q5 ("most goals scored/conceded across R32+R16") — only once all 24 are complete.
+    r16_matches = [match(wa, wb) for wa, wb in r16_pairs]
+    if len(r16) == 16 and len(r16_pairs) == 8 and all(r16_matches) and len(qf) == 8:
         scored, conceded = {}, {}
-        for m in r32_matches + r16_matches:
+        for m in [match(x, y) for x, y in bracket] + r16_matches:
             scored[m['h']] = scored.get(m['h'], 0) + m['hs']
             conceded[m['h']] = conceded.get(m['h'], 0) + m['as']
             scored[m['a']] = scored.get(m['a'], 0) + m['as']
@@ -104,9 +123,12 @@ def main():
         ko['q5'] = max(conceded, key=conceded.get)
 
     data['koResults'] = ko
+    data['koMatches'] = matches
     json.dump(data, open('data.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     open('data.json', 'a').write('\n')
-    print(f"koResults: {len(r16)} R32 winners, {len(qf)} R16 winners, q4={ko.get('q4')}, q5={ko.get('q5')}")
+    played = sum(1 for m in matches if m.get('done'))
+    print(f"koMatches: {len(matches)} ({played} played) | koResults: {len(r16)} R32 winners, "
+          f"{len(qf)} R16 winners, q4={ko.get('q4')}, q5={ko.get('q5')}")
     print(f"  R32 winners (reached R16): {r16}")
 
 if __name__ == '__main__':
