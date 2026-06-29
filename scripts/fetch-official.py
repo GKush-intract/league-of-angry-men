@@ -111,9 +111,12 @@ def main():
             sys.exit(f"group standings did not match any known group: {codes}")
         tables[L] = rows
 
-    qcol = next(c for c in thirds.columns if 'qualif' in str(c).lower())
     tcol = next(c for c in thirds.columns if 'Team' in str(c))
-    best = [code(r[tcol]) for _, r in thirds.iterrows() if 'Knockout' in str(r[qcol])]
+    # The 8 best third-placed teams qualify. Use the table's RANK (it's the official
+    # ranking, sorted Pos 1..12 — top 8 advance) rather than the 'Qualification' text,
+    # which Wikipedia re-words/re-cases over the tournament ("Advance to Knockout stage"
+    # -> "Advance to knockout stage" -> ...), which previously broke this parse.
+    best = [code(r[tcol]) for _, r in thirds.iterrows()][:8]
     if not (1 <= len(best) <= 8):
         sys.exit(f"unexpected bestThirds count: {len(best)} -> {best}")
 

@@ -39,6 +39,9 @@ jobs:
       - name: Update knockout bracket from Wikipedia
         run: python3 scripts/fetch-knockout.py
 
+      - name: Update knockout results (Phase 2 scoring)
+        run: python3 scripts/fetch-knockout-results.py
+
       - name: Sync Phase 2 picks
         env:
           PICKS_CSV_URL: ${{ secrets.PICKS_CSV_URL }}
