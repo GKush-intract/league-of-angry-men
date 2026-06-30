@@ -3538,7 +3538,9 @@
   ],
   "koResults": {
     "r16": [
+      "PAR",
       "CAN",
+      "MAR",
       "BRA"
     ],
     "qf": []
@@ -3572,7 +3574,11 @@
       "hs": 1,
       "as": 1,
       "done": true,
-      "w": null
+      "w": "PAR",
+      "pens": [
+        3,
+        4
+      ]
     },
     {
       "h": "NED",
@@ -3582,7 +3588,11 @@
       "hs": 1,
       "as": 1,
       "done": true,
-      "w": null
+      "w": "MAR",
+      "pens": [
+        2,
+        3
+      ]
     },
     {
       "h": "CIV",

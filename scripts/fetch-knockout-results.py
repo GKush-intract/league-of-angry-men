@@ -72,9 +72,18 @@ def parse_matches(html):
             rec.update(hs=hs, **{'as': as_}, done=True)
             if hs != as_:
                 rec['w'] = h if hs > as_ else a
-            else:  # penalty shootout: winner in the parenthetical (X–Y)
-                pm = re.search(r'\(\s*(\d+)\s*[–-]\s*(\d+)\s*\)', b.text_content())
+            else:  # drawn after extra time -> penalty shootout. The shootout score
+                # ("3–4") lives in the LAST fgoals cell, after the "Penalties" header
+                # (separated by newlines, so a whole-box regex misses it).
+                pm = None
+                for gc in b.xpath('.//*[contains(@class,"fgoals")]'):
+                    txt = re.sub(r'\s+', ' ', gc.text_content())
+                    cand = re.search(r'(?<![:\'])\b(\d+)\s*[–-]\s*(\d+)\b', txt)
+                    if cand:
+                        pm = cand  # later cells win -> penalty cell over goalscorers
                 rec['w'] = (h if int(pm.group(1)) > int(pm.group(2)) else a) if pm else None
+                if pm:
+                    rec['pens'] = [int(pm.group(1)), int(pm.group(2))]
         else:
             rec['done'] = False
         out.append(rec)
