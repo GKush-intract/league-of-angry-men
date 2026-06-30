@@ -3538,7 +3538,8 @@
   ],
   "koResults": {
     "r16": [
-      "CAN"
+      "CAN",
+      "BRA"
     ],
     "qf": []
   },
@@ -3558,21 +3559,30 @@
       "a": "JPN",
       "date": "2026-06-29",
       "time": "10:30 PM",
-      "done": false
+      "hs": 2,
+      "as": 1,
+      "done": true,
+      "w": "BRA"
     },
     {
       "h": "GER",
       "a": "PAR",
       "date": "2026-06-30",
       "time": "2:00 AM",
-      "done": false
+      "hs": 1,
+      "as": 1,
+      "done": true,
+      "w": null
     },
     {
       "h": "NED",
       "a": "MAR",
       "date": "2026-06-30",
       "time": "6:30 AM",
-      "done": false
+      "hs": 1,
+      "as": 1,
+      "done": true,
+      "w": null
     },
     {
       "h": "CIV",
@@ -3656,6 +3666,13 @@
       "a": "GHA",
       "date": "2026-07-04",
       "time": "7:00 AM",
+      "done": false
+    },
+    {
+      "h": "CAN",
+      "a": "MAR",
+      "date": "2026-07-04",
+      "time": "10:30 PM",
       "done": false
     }
   ]
