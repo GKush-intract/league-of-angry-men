@@ -4,9 +4,13 @@ name: Update standings
 # Phase-2 scoring. The group tables, the R32 bracket, and the player picks are all
 # FINAL/LOCKED now, so we no longer re-scrape them — re-scraping finalized data has no
 # benefit and only risks errors or corruption (e.g. the bracket parser would misread
-# later rounds once they fill in). Run on demand from the Actions tab.
+# later rounds once they fill in). Runs on a schedule (every 6h) through the knockout
+# stage, plus on demand from the Actions tab.
 on:
   workflow_dispatch:
+  schedule:
+    # every 6 hours (UTC) — catches each knockout result within hours of full-time
+    - cron: '0 */6 * * *'
 
 permissions:
   contents: write
