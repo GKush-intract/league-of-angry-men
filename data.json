@@ -274,24 +274,24 @@
   "results": {},
   "previousRanks": {
     "Garrick Shanpru": 1,
-    "Omargh Lanong": 2,
-    "Kushagra": 3,
-    "Mohit Ghune": 4,
-    "Shivam Datta": 5,
+    "Shivam Datta": 2,
+    "Omargh Lanong": 3,
+    "Kushagra": 4,
+    "Mohit Ghune": 5,
     "Banshan": 6,
-    "Pynk": 7,
-    "Saket": 8,
-    "Mohit Agarwal": 9,
-    "Artet": 10,
-    "Banmanlang": 11,
-    "Dale shylla": 12,
-    "Krishna": 13,
-    "Sangam": 14,
-    "Sanjog": 15,
-    "Vaibhav Gupta": 16,
-    "Zac": 17,
-    "Manav": 18,
-    "Prasoon Chaturvedi": 19,
+    "Mohit Agarwal": 7,
+    "Pynk": 8,
+    "Saket": 9,
+    "Manav": 10,
+    "Prasoon Chaturvedi": 11,
+    "Banmanlang": 12,
+    "Dale shylla": 13,
+    "Krishna": 14,
+    "Sangam": 15,
+    "Sanjog": 16,
+    "Vaibhav Gupta": 17,
+    "Zac": 18,
+    "Artet": 19,
     "Luke Shanpru": 20
   },
   "players": [
@@ -3539,9 +3539,12 @@
   "koResults": {
     "r16": [
       "PAR",
+      "FRA",
       "CAN",
       "MAR",
-      "BRA"
+      "BRA",
+      "NOR",
+      "MEX"
     ],
     "qf": []
   },
@@ -3599,21 +3602,30 @@
       "a": "NOR",
       "date": "2026-06-30",
       "time": "10:30 PM",
-      "done": false
+      "hs": 1,
+      "as": 2,
+      "done": true,
+      "w": "NOR"
     },
     {
       "h": "FRA",
       "a": "SWE",
       "date": "2026-07-01",
       "time": "2:30 AM",
-      "done": false
+      "hs": 3,
+      "as": 0,
+      "done": true,
+      "w": "FRA"
     },
     {
       "h": "MEX",
       "a": "ECU",
       "date": "2026-07-01",
-      "time": "6:30 AM",
-      "done": false
+      "time": "7:30 AM",
+      "hs": 2,
+      "as": 0,
+      "done": true,
+      "w": "MEX"
     },
     {
       "h": "ENG",
@@ -3683,6 +3695,20 @@
       "a": "MAR",
       "date": "2026-07-04",
       "time": "10:30 PM",
+      "done": false
+    },
+    {
+      "h": "PAR",
+      "a": "FRA",
+      "date": "2026-07-05",
+      "time": "2:30 AM",
+      "done": false
+    },
+    {
+      "h": "BRA",
+      "a": "NOR",
+      "date": "2026-07-06",
+      "time": "1:30 AM",
       "done": false
     }
   ]
