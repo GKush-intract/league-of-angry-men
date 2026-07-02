@@ -283,14 +283,14 @@
     "Pynk": 8,
     "Saket": 9,
     "Manav": 10,
-    "Prasoon Chaturvedi": 11,
-    "Banmanlang": 12,
-    "Dale shylla": 13,
-    "Krishna": 14,
-    "Sangam": 15,
-    "Sanjog": 16,
-    "Vaibhav Gupta": 17,
-    "Zac": 18,
+    "Banmanlang": 11,
+    "Dale shylla": 12,
+    "Krishna": 13,
+    "Sangam": 14,
+    "Sanjog": 15,
+    "Vaibhav Gupta": 16,
+    "Zac": 17,
+    "Prasoon Chaturvedi": 18,
     "Artet": 19,
     "Luke Shanpru": 20
   },
@@ -3542,9 +3542,12 @@
       "FRA",
       "CAN",
       "MAR",
+      "USA",
+      "BEL",
       "BRA",
       "NOR",
-      "MEX"
+      "MEX",
+      "ENG"
     ],
     "qf": []
   },
@@ -3632,21 +3635,30 @@
       "a": "COD",
       "date": "2026-07-01",
       "time": "9:30 PM",
-      "done": false
+      "hs": 2,
+      "as": 1,
+      "done": true,
+      "w": "ENG"
     },
     {
       "h": "BEL",
       "a": "SEN",
       "date": "2026-07-02",
       "time": "1:30 AM",
-      "done": false
+      "hs": 3,
+      "as": 2,
+      "done": true,
+      "w": "BEL"
     },
     {
       "h": "USA",
       "a": "BIH",
       "date": "2026-07-02",
       "time": "5:30 AM",
-      "done": false
+      "hs": 2,
+      "as": 0,
+      "done": true,
+      "w": "USA"
     },
     {
       "h": "ESP",
@@ -3709,6 +3721,20 @@
       "a": "NOR",
       "date": "2026-07-06",
       "time": "1:30 AM",
+      "done": false
+    },
+    {
+      "h": "MEX",
+      "a": "ENG",
+      "date": "2026-07-06",
+      "time": "5:30 AM",
+      "done": false
+    },
+    {
+      "h": "USA",
+      "a": "BEL",
+      "date": "2026-07-07",
+      "time": "5:30 AM",
       "done": false
     }
   ]
