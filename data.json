@@ -280,18 +280,18 @@
     "Mohit Ghune": 5,
     "Banshan": 6,
     "Mohit Agarwal": 7,
-    "Pynk": 8,
-    "Saket": 9,
+    "Saket": 8,
+    "Pynk": 9,
     "Manav": 10,
     "Banmanlang": 11,
     "Dale shylla": 12,
     "Krishna": 13,
-    "Sangam": 14,
-    "Sanjog": 15,
-    "Vaibhav Gupta": 16,
-    "Zac": 17,
-    "Prasoon Chaturvedi": 18,
-    "Artet": 19,
+    "Sanjog": 14,
+    "Vaibhav Gupta": 15,
+    "Zac": 16,
+    "Prasoon Chaturvedi": 17,
+    "Artet": 18,
+    "Sangam": 19,
     "Luke Shanpru": 20
   },
   "players": [
@@ -3542,12 +3542,15 @@
       "FRA",
       "CAN",
       "MAR",
+      "POR",
+      "ESP",
       "USA",
       "BEL",
       "BRA",
       "NOR",
       "MEX",
-      "ENG"
+      "ENG",
+      "SUI"
     ],
     "qf": []
   },
@@ -3665,21 +3668,30 @@
       "a": "AUT",
       "date": "2026-07-03",
       "time": "12:30 AM",
-      "done": false
+      "hs": 3,
+      "as": 0,
+      "done": true,
+      "w": "ESP"
     },
     {
       "h": "POR",
       "a": "CRO",
       "date": "2026-07-03",
       "time": "4:30 AM",
-      "done": false
+      "hs": 2,
+      "as": 1,
+      "done": true,
+      "w": "POR"
     },
     {
       "h": "SUI",
       "a": "ALG",
       "date": "2026-07-03",
       "time": "8:30 AM",
-      "done": false
+      "hs": 2,
+      "as": 0,
+      "done": true,
+      "w": "SUI"
     },
     {
       "h": "AUS",
@@ -3728,6 +3740,13 @@
       "a": "ENG",
       "date": "2026-07-06",
       "time": "5:30 AM",
+      "done": false
+    },
+    {
+      "h": "POR",
+      "a": "ESP",
+      "date": "2026-07-07",
+      "time": "12:30 AM",
       "done": false
     },
     {
