@@ -279,19 +279,19 @@
     "Kushagra": 4,
     "Mohit Ghune": 5,
     "Banshan": 6,
-    "Mohit Agarwal": 7,
-    "Saket": 8,
-    "Pynk": 9,
-    "Manav": 10,
-    "Banmanlang": 11,
-    "Dale shylla": 12,
-    "Krishna": 13,
-    "Sanjog": 14,
-    "Vaibhav Gupta": 15,
-    "Zac": 16,
-    "Prasoon Chaturvedi": 17,
-    "Artet": 18,
-    "Sangam": 19,
+    "Saket": 7,
+    "Mohit Agarwal": 8,
+    "Manav": 9,
+    "Banmanlang": 10,
+    "Krishna": 11,
+    "Vaibhav Gupta": 12,
+    "Zac": 13,
+    "Pynk": 14,
+    "Prasoon Chaturvedi": 15,
+    "Artet": 16,
+    "Dale shylla": 17,
+    "Sangam": 18,
+    "Sanjog": 19,
     "Luke Shanpru": 20
   },
   "players": [
@@ -3550,7 +3550,10 @@
       "NOR",
       "MEX",
       "ENG",
-      "SUI"
+      "ARG",
+      "EGY",
+      "SUI",
+      "COL"
     ],
     "qf": []
   },
@@ -3698,21 +3701,34 @@
       "a": "EGY",
       "date": "2026-07-03",
       "time": "11:30 PM",
-      "done": false
+      "hs": 1,
+      "as": 1,
+      "done": true,
+      "w": "EGY",
+      "pens": [
+        2,
+        4
+      ]
     },
     {
       "h": "ARG",
       "a": "CPV",
       "date": "2026-07-04",
       "time": "3:30 AM",
-      "done": false
+      "hs": 3,
+      "as": 2,
+      "done": true,
+      "w": "ARG"
     },
     {
       "h": "COL",
       "a": "GHA",
       "date": "2026-07-04",
       "time": "7:00 AM",
-      "done": false
+      "hs": 1,
+      "as": 0,
+      "done": true,
+      "w": "COL"
     },
     {
       "h": "CAN",
@@ -3754,6 +3770,20 @@
       "a": "BEL",
       "date": "2026-07-07",
       "time": "5:30 AM",
+      "done": false
+    },
+    {
+      "h": "ARG",
+      "a": "EGY",
+      "date": "2026-07-07",
+      "time": "9:30 PM",
+      "done": false
+    },
+    {
+      "h": "SUI",
+      "a": "COL",
+      "date": "2026-07-08",
+      "time": "1:30 AM",
       "done": false
     }
   ]
