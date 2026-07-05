@@ -273,26 +273,26 @@
   },
   "results": {},
   "previousRanks": {
-    "Garrick Shanpru": 1,
-    "Shivam Datta": 2,
+    "Shivam Datta": 1,
+    "Garrick Shanpru": 2,
     "Omargh Lanong": 3,
     "Kushagra": 4,
     "Mohit Ghune": 5,
     "Banshan": 6,
-    "Saket": 7,
-    "Mohit Agarwal": 8,
-    "Manav": 9,
-    "Banmanlang": 10,
-    "Krishna": 11,
-    "Vaibhav Gupta": 12,
-    "Zac": 13,
-    "Pynk": 14,
-    "Prasoon Chaturvedi": 15,
-    "Artet": 16,
-    "Dale shylla": 17,
-    "Sangam": 18,
-    "Sanjog": 19,
-    "Luke Shanpru": 20
+    "Banmanlang": 7,
+    "Saket": 8,
+    "Vaibhav Gupta": 9,
+    "Mohit Agarwal": 10,
+    "Pynk": 11,
+    "Manav": 12,
+    "Prasoon Chaturvedi": 13,
+    "Krishna": 14,
+    "Sangam": 15,
+    "Sanjog": 16,
+    "Zac": 17,
+    "Luke Shanpru": 18,
+    "Artet": 19,
+    "Dale shylla": 20
   },
   "players": [
     {
@@ -3555,7 +3555,10 @@
       "SUI",
       "COL"
     ],
-    "qf": []
+    "qf": [
+      "FRA",
+      "MAR"
+    ]
   },
   "koMatches": [
     {
@@ -3735,14 +3738,20 @@
       "a": "MAR",
       "date": "2026-07-04",
       "time": "10:30 PM",
-      "done": false
+      "hs": 0,
+      "as": 3,
+      "done": true,
+      "w": "MAR"
     },
     {
       "h": "PAR",
       "a": "FRA",
       "date": "2026-07-05",
       "time": "2:30 AM",
-      "done": false
+      "hs": 0,
+      "as": 1,
+      "done": true,
+      "w": "FRA"
     },
     {
       "h": "BRA",
@@ -3783,6 +3792,13 @@
       "h": "SUI",
       "a": "COL",
       "date": "2026-07-08",
+      "time": "1:30 AM",
+      "done": false
+    },
+    {
+      "h": "FRA",
+      "a": "MAR",
+      "date": "2026-07-10",
       "time": "1:30 AM",
       "done": false
     }
