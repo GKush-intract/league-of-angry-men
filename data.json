@@ -279,20 +279,20 @@
     "Kushagra": 4,
     "Mohit Ghune": 5,
     "Banshan": 6,
-    "Banmanlang": 7,
-    "Saket": 8,
-    "Vaibhav Gupta": 9,
-    "Mohit Agarwal": 10,
-    "Pynk": 11,
-    "Manav": 12,
-    "Prasoon Chaturvedi": 13,
-    "Krishna": 14,
-    "Sangam": 15,
-    "Sanjog": 16,
-    "Zac": 17,
-    "Luke Shanpru": 18,
-    "Artet": 19,
-    "Dale shylla": 20
+    "Mohit Agarwal": 7,
+    "Manav": 8,
+    "Prasoon Chaturvedi": 9,
+    "Saket": 10,
+    "Vaibhav Gupta": 11,
+    "Pynk": 12,
+    "Krishna": 13,
+    "Sangam": 14,
+    "Sanjog": 15,
+    "Zac": 16,
+    "Luke Shanpru": 17,
+    "Banmanlang": 18,
+    "Dale shylla": 19,
+    "Artet": 20
   },
   "players": [
     {
@@ -3557,7 +3557,9 @@
     ],
     "qf": [
       "FRA",
-      "MAR"
+      "MAR",
+      "NOR",
+      "ENG"
     ]
   },
   "koMatches": [
@@ -3758,14 +3760,20 @@
       "a": "NOR",
       "date": "2026-07-06",
       "time": "1:30 AM",
-      "done": false
+      "hs": 1,
+      "as": 2,
+      "done": true,
+      "w": "NOR"
     },
     {
       "h": "MEX",
       "a": "ENG",
       "date": "2026-07-06",
-      "time": "5:30 AM",
-      "done": false
+      "time": "6:30 AM",
+      "hs": 2,
+      "as": 3,
+      "done": true,
+      "w": "ENG"
     },
     {
       "h": "POR",
@@ -3800,6 +3808,13 @@
       "a": "MAR",
       "date": "2026-07-10",
       "time": "1:30 AM",
+      "done": false
+    },
+    {
+      "h": "NOR",
+      "a": "ENG",
+      "date": "2026-07-12",
+      "time": "2:30 AM",
       "done": false
     }
   ]
