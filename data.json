@@ -3566,8 +3566,14 @@
       "ARG",
       "SUI"
     ],
-    "q4": "BEL",
-    "q5": "USA"
+    "q4": [
+      "BEL"
+    ],
+    "q5": [
+      "ARG",
+      "EGY",
+      "USA"
+    ]
   },
   "koMatches": [
     {

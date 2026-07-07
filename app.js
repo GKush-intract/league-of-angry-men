@@ -1,6 +1,6 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, regionTeams } from './compute.js';
-import { renderBuild, handleBuildEvent, renderBuildP3, handleBuildEventP3, bracketModel } from './build.js';
+import { renderBuild, handleBuildEvent, renderBuildP3, handleBuildEventP3, isLockedP3, bracketModel } from './build.js';
 
 const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},t:'',f:''}, submitState:'idle', lastPayload:'', copied:false }; /* p3 = Phase 3 builder state (QF/SF picks + t = 3rd-place winner + f = champion) */
 let DATA, TABLES, PROJ, STAND, TEAM, POT, M, AGG;
@@ -108,8 +108,18 @@ function viewStandings() {
         <div style="font-size:10px;color:${mvColor};font-weight:700;margin-top:3px;">${mvText}</div>
       </div></button>`;
   }).join('');
+  // Home banner: while Phase 3 picks are open, drive everyone to the Build tab;
+  // after the deadline, fall back to the People's Bracket link.
   const hasPicks = DATA.players.some(p => p.bracket);
-  const phase2Banner = hasPicks ? `
+  const p3Open = DATA.meta?.phase >= 3 && !isLockedP3(DATA);
+  const phase2Banner = p3Open ? `
+  <button data-tab="build" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:14px 16px;border:1px solid #5a4a1c;border-radius:14px;background:linear-gradient(135deg,rgba(255,206,58,.18),rgba(255,206,58,.06));cursor:pointer;color:#ffce3a;">
+    <div style="min-width:0;">
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.02em;line-height:1;">✏️ PHASE 3 PICKS ARE OPEN</div>
+      <div style="font-size:11px;color:#e9d9a0;margin-top:4px;">QF → Final + 3rd place · locks midnight IST, 10 July</div>
+    </div>
+    <span style="flex:none;font-family:'Barlow Condensed';font-weight:800;font-size:14px;background:#ffce3a;color:#1a1400;padding:8px 14px;border-radius:10px;white-space:nowrap;">BUILD NOW →</span>
+  </button>` : hasPicks ? `
   <button data-tab="bracket" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:14px 16px;border:1px solid #5a4a1c;border-radius:14px;background:linear-gradient(135deg,rgba(255,206,58,.18),rgba(255,206,58,.06));cursor:pointer;color:#ffce3a;">
     <div style="min-width:0;">
       <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.02em;line-height:1;">🗺️ SEE PHASE 2 PICKS</div>

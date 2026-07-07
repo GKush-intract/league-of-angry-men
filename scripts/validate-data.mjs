@@ -78,9 +78,13 @@ export function validate(data) {
         for (const c of ko[round])
           if (typeof c !== 'string' || !all.has(c)) errors.push(`koResults.${round}: ${c} is not a valid team code`);
       }
-      for (const f of ['q4', 'q5'])
-        if (ko[f] !== undefined && (typeof ko[f] !== 'string' || !all.has(ko[f])))
-          errors.push(`koResults.${f}: ${ko[f]} is not a valid team code`);
+      // q4/q5: a single code or an array of codes (all teams tied on the top count)
+      for (const f of ['q4', 'q5']) {
+        if (ko[f] === undefined) continue;
+        for (const c of [].concat(ko[f]))
+          if (typeof c !== 'string' || !all.has(c))
+            errors.push(`koResults.${f}: ${c} is not a valid team code`);
+      }
     }
   }
 

@@ -305,3 +305,12 @@ test('qfTeams leaves unresolved regions null without a guess', () => {
   assert.deepEqual(teams, Array(8).fill(null));
   assert.deepEqual(guessed, []);
 });
+
+test('scorePhase2 honors q4/q5 ties (array of leaders) and single-code form', () => {
+  const ko = { r16: [], qf: [], q4: ['BEL'], q5: ['ARG', 'EGY', 'USA'] };
+  assert.equal(scorePhase2({ q4: 'BEL', q5: 'EGY' }, ko), 8);
+  assert.equal(scorePhase2({ q4: 'FRA', q5: 'USA' }, ko), 4);
+  assert.equal(scorePhase2({ q4: 'FRA', q5: 'CAN' }, ko), 0);
+  // legacy single-string form still works
+  assert.equal(scorePhase2({ q4: 'BEL', q5: 'USA' }, { r16: [], qf: [], q4: 'BEL', q5: 'USA' }), 8);
+});

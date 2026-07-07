@@ -128,8 +128,10 @@ def main():
             conceded[m['h']] = conceded.get(m['h'], 0) + m['as']
             scored[m['a']] = scored.get(m['a'], 0) + m['as']
             conceded[m['a']] = conceded.get(m['a'], 0) + m['hs']
-        ko['q4'] = max(scored, key=scored.get)
-        ko['q5'] = max(conceded, key=conceded.get)
+        # Every team tied on the top count is a correct answer (per the stated rule),
+        # so emit lists of all leaders, not an arbitrary single team.
+        ko['q4'] = sorted(t for t, g in scored.items() if g == max(scored.values()))
+        ko['q5'] = sorted(t for t, g in conceded.items() if g == max(conceded.values()))
 
     data['koResults'] = ko
     data['koMatches'] = matches

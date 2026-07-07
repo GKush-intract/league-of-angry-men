@@ -115,6 +115,8 @@ export function scorePlayer(player, proj) {
 // Set-based (matches a picked team to the set that actually advanced), so it does NOT
 // depend on tie/region indices lining up — robust to bracket re-ordering. Partial
 // results score partially (only filled-in rounds count).
+// ko.q4/q5 may be a single code or an array of codes — per the stated rule, every
+// team tied on the most-scored/most-conceded count is a correct answer.
 export function scorePhase2(player, ko) {
   if (!ko) return 0;
   const r16 = new Set(ko.r16 || []), qf = new Set(ko.qf || []);
@@ -122,8 +124,8 @@ export function scorePhase2(player, ko) {
   let pts = 0;
   for (const c of Object.values(b.r32 || {})) if (r16.has(c)) pts += 2;
   for (const c of Object.values(b.r16 || {})) if (qf.has(c)) pts += 4;
-  if (ko.q4 && player.q4 === ko.q4) pts += 4;
-  if (ko.q5 && player.q5 === ko.q5) pts += 4;
+  if (ko.q4 && player.q4 && [].concat(ko.q4).includes(player.q4)) pts += 4;
+  if (ko.q5 && player.q5 && [].concat(ko.q5).includes(player.q5)) pts += 4;
   return pts;
 }
 
