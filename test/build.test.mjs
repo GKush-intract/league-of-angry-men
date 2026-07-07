@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyR32, applyR16, pickCounts, buildPayload, bracketModel, p3Model, applyQF, applySF, p3PickCounts, buildPayloadP3, isLockedP3 } from '../build.js';
+import { applyR32, applyR16, pickCounts, buildPayload, bracketModel, p3Model, applyQF, applySF, applyT, applyF, thirdCandidates, p3PickCounts, buildPayloadP3, isLockedP3 } from '../build.js';
 import { parsePicksCsv } from '../scripts/fetch-picks.mjs';
 
 test('applyR16 then invalidating R32 clears the R16 pick', () => {
@@ -148,31 +148,54 @@ test('applySF clears an invalidated champion', () => {
   assert.equal(p3.f, '');
 });
 
-test('p3PickCounts totals qf + sf + final', () => {
-  const { total, qfdone, sfdone, fdone } = p3PickCounts({ qf: { 0:'FRA', 2:'NOR' }, sf: { 1:'ENG' }, f: 'ENG' });
-  assert.equal(qfdone, 2); assert.equal(sfdone, 1); assert.equal(fdone, 1); assert.equal(total, 4);
+test('p3PickCounts totals qf + sf + third + final (8 max)', () => {
+  const { total, qfdone, sfdone, tdone, fdone } = p3PickCounts({ qf: { 0:'FRA', 2:'NOR' }, sf: { 1:'ENG' }, t: 'MAR', f: 'ENG' });
+  assert.equal(qfdone, 2); assert.equal(sfdone, 1); assert.equal(tdone, 1); assert.equal(fdone, 1); assert.equal(total, 5);
 });
 
-test('buildPayloadP3 produces 4 qf + 2 sf + final + numeric q6', () => {
+test('thirdCandidates derives the two implied SF losers', () => {
+  const p3 = { qf: { 0:'FRA', 1:'BEL', 2:'ENG', 3:'ARG' }, sf: { 0:'FRA', 1:'ARG' }, t: '', f: '' };
+  assert.deepEqual(thirdCandidates(p3), ['BEL', 'ENG']);
+});
+
+test('thirdCandidates is null until all QF + SF picks exist and are consistent', () => {
+  assert.equal(thirdCandidates({ qf: { 0:'FRA', 1:'BEL' }, sf: { 0:'FRA' }, t:'', f:'' }), null);
+  // stale SF pick not among its QF feeders -> not derivable
+  assert.equal(thirdCandidates({ qf: { 0:'FRA', 1:'BEL', 2:'ENG', 3:'ARG' }, sf: { 0:'MAR', 1:'ARG' }, t:'', f:'' }), null);
+});
+
+test('applyQF and applySF clear an invalidated 3rd-place pick', () => {
+  let p3 = { qf: { 0:'FRA', 1:'BEL', 2:'ENG', 3:'ARG' }, sf: { 0:'FRA', 1:'ARG' }, t: 'BEL', f: 'FRA' };
+  p3 = applySF(p3, 0, 'BEL');            // BEL now reaches the final -> can't be 3rd
+  assert.equal(p3.t, '');
+  p3 = applyT(p3, 'FRA');                // new implied losers: FRA, ENG
+  assert.equal(p3.t, 'FRA');
+  p3 = applyQF(p3, 0, 'MAR');            // SF1 pick BEL survives, but FRA is out of the bracket
+  assert.equal(p3.sf[0], 'BEL');
+  assert.equal(p3.t, '');
+});
+
+test('buildPayloadP3 produces 4 qf + 2 sf + third + final', () => {
   const M = p3Model(P3_DATA, {});
-  const state = { builderName: 0, q6: '0', p3: { qf: { 0:'FRA',1:'BEL',2:'ENG',3:'ARG' }, sf: { 0:'FRA',1:'ARG' }, f: 'ARG' } };
+  const state = { builderName: 0, p3: { qf: { 0:'FRA',1:'BEL',2:'ENG',3:'ARG' }, sf: { 0:'FRA',1:'ARG' }, t: 'BEL', f: 'ARG' } };
   const out = JSON.parse(buildPayloadP3({ DATA: P3_DATA, state }, M));
   assert.equal(out.phase, 3);
   assert.equal(out.player, 'Artet');
   assert.equal(out.qf.length, 4);
   assert.deepEqual(out.qf[0], { tie: 1, matchup: 'FRA v MAR', pick: 'FRA' });
   assert.deepEqual(out.sf.map(s => s.pick), ['FRA','ARG']);
+  assert.equal(out.third.pick, 'BEL');
   assert.equal(out.final.pick, 'ARG');
-  assert.equal(out.q6, 0);               // '0' is a real answer, not "unanswered"
+  assert.equal(out.q6, undefined);       // rule change: no Q6 in Phase 3 payloads
 });
 
-test('buildPayloadP3 leaves unanswered picks/q6 null', () => {
+test('buildPayloadP3 leaves unanswered picks null', () => {
   const M = p3Model(P3_DATA, {});
-  const state = { builderName: 0, q6: '', p3: { qf: {}, sf: {}, f: '' } };
+  const state = { builderName: 0, p3: { qf: {}, sf: {}, t: '', f: '' } };
   const out = JSON.parse(buildPayloadP3({ DATA: P3_DATA, state }, M));
   assert.equal(out.qf[0].pick, null);
+  assert.equal(out.third.pick, null);
   assert.equal(out.final.pick, null);
-  assert.equal(out.q6, null);
 });
 
 test('isLockedP3 respects meta.phase3Deadline', () => {

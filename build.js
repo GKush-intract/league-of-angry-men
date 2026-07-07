@@ -264,28 +264,50 @@ export function isLockedP3(DATA) {
   const d = DATA.meta?.phase3Deadline;
   return !!d && Date.now() >= Date.parse(d);
 }
-// p3 = { qf: {0..3: code}, sf: {0..1: code}, f: code|'' } — 7 picks total.
+// p3 = { qf: {0..3: code}, sf: {0..1: code}, t: code|'', f: code|'' } — 8 picks total
+// (t = 3rd-place match winner, i.e. one of the two SF losers).
 export function p3PickCounts(p3) {
   const qfdone = [0, 1, 2, 3].filter(k => p3.qf[k]).length;
   const sfdone = [0, 1].filter(s => p3.sf[s]).length;
+  const tdone = p3.t ? 1 : 0;
   const fdone = p3.f ? 1 : 0;
-  return { qfdone, sfdone, fdone, total: qfdone + sfdone + fdone };
+  return { qfdone, sfdone, tdone, fdone, total: qfdone + sfdone + tdone + fdone };
 }
-// Choosing a QF winner clears any downstream pick it invalidates (SF, then champion).
+// The 3rd-place match contenders: the SF losers implied by the player's own picks.
+// Needs all 4 QF picks + both SF picks; returns null until then.
+export function thirdCandidates(p3) {
+  for (const s of [0, 1]) {
+    const pair = [p3.qf[2 * s], p3.qf[2 * s + 1]];
+    if (!pair[0] || !pair[1] || !p3.sf[s] || !pair.includes(p3.sf[s])) return null;
+  }
+  const loser = s => [p3.qf[2 * s], p3.qf[2 * s + 1]].find(c => c !== p3.sf[s]);
+  return [loser(0), loser(1)];
+}
+// Drop a stale 3rd-place pick if it's no longer one of the implied SF losers.
+function revalidateT(np) {
+  if (!np.t) return np;
+  const cands = thirdCandidates(np);
+  if (!cands || !cands.includes(np.t)) np.t = '';
+  return np;
+}
+// Choosing a QF winner clears any downstream pick it invalidates (SF, then champion/3rd).
 export function applyQF(p3, k, code) {
-  const np = { qf: { ...p3.qf, [k]: code }, sf: { ...p3.sf }, f: p3.f };
+  const np = { qf: { ...p3.qf, [k]: code }, sf: { ...p3.sf }, t: p3.t, f: p3.f };
   const s = Math.floor(k / 2), f0 = np.qf[2 * s], f1 = np.qf[2 * s + 1];
   if (np.sf[s] && np.sf[s] !== f0 && np.sf[s] !== f1) delete np.sf[s];
   if (np.f && np.f !== np.sf[0] && np.f !== np.sf[1]) np.f = '';
-  return np;
+  return revalidateT(np);
 }
 export function applySF(p3, s, code) {
-  const np = { qf: { ...p3.qf }, sf: { ...p3.sf, [s]: code }, f: p3.f };
+  const np = { qf: { ...p3.qf }, sf: { ...p3.sf, [s]: code }, t: p3.t, f: p3.f };
   if (np.f && np.f !== np.sf[0] && np.f !== np.sf[1]) np.f = '';
-  return np;
+  return revalidateT(np);
+}
+export function applyT(p3, code) {
+  return { qf: { ...p3.qf }, sf: { ...p3.sf }, t: code, f: p3.f };
 }
 export function applyF(p3, code) {
-  return { qf: { ...p3.qf }, sf: { ...p3.sf }, f: code };
+  return { qf: { ...p3.qf }, sf: { ...p3.sf }, t: p3.t, f: code };
 }
 
 export function buildPayloadP3(ctx, M) {
@@ -293,7 +315,7 @@ export function buildPayloadP3(ctx, M) {
   const p = DATA.players[state.builderName] || { name: '?', nick: '' };
   const qf = M.qf.map(m => ({ tie: m.id + 1, matchup: m.a.code + ' v ' + m.b.code, pick: state.p3.qf[m.id] || null }));
   const sf = [0, 1].map(s => ({ tie: s + 1, pick: state.p3.sf[s] || null }));
-  return JSON.stringify({ player: p.name, nick: p.nick || '', phase: 3, submittedAt: new Date().toISOString(), qf, sf, final: { pick: state.p3.f || null }, q6: state.q6 === '' || state.q6 == null ? null : +state.q6 }, null, 2);
+  return JSON.stringify({ player: p.name, nick: p.nick || '', phase: 3, submittedAt: new Date().toISOString(), qf, sf, third: { pick: state.p3.t || null }, final: { pick: state.p3.f || null } }, null, 2);
 }
 
 export function submitBracketP3(ctx, M) {
@@ -309,12 +331,12 @@ export function renderBuildP3(ctx) {
   const { DATA, TEAM, state } = ctx;
   const M = p3Model(DATA, TEAM);
   const locked = isLockedP3(DATA);
-  const p3 = state.p3 || { qf: {}, sf: {}, f: '' };
+  const p3 = state.p3 || { qf: {}, sf: {}, t: '', f: '' };
   const { total: pickCount } = p3PickCounts(p3);
 
   const header = `<div style="margin:16px 2px 10px;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;line-height:1;">BUILD YOUR RUN-IN</div>
-      <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Phase 3 · pick 4 QF winners (6 pts), 2 SF winners (8 pts) and the champion (10 pts).</div>
+      <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Phase 3 · pick 4 QF winners (6 pts), 2 SF winners (8 pts), the 3rd-place winner (7 pts) and the champion (10 pts).</div>
     </div>`;
 
   // Hard gate: the QF bracket needs all 8 teams (results or best-guess) to render.
@@ -325,13 +347,13 @@ export function renderBuildP3(ctx) {
   let derived;
   if (locked) derived = 'locked';
   else if (pickCount === 0) derived = 'empty';
-  else if (pickCount >= 7) derived = 'complete';
+  else if (pickCount >= 8) derived = 'complete';
   else derived = 'partial';
 
   const statusMap = {
     empty: { icon: '○', color: '#7fd0a0', title: 'Bracket open', sub: 'Tap a team in each QF to send it through.' },
-    partial: { icon: '◐', color: '#ffce3a', title: 'In progress', sub: 'Keep going — finish the QFs, SFs and the final.' },
-    complete: { icon: '●', color: '#b6ff3a', title: 'Ready to submit', sub: 'All 7 picks in. Lock it in below.' },
+    partial: { icon: '◐', color: '#ffce3a', title: 'In progress', sub: 'Keep going — finish the QFs, SFs, 3rd place and the final.' },
+    complete: { icon: '●', color: '#b6ff3a', title: 'Ready to submit', sub: 'All 8 picks in. Lock it in below.' },
     locked: { icon: '🔒', color: '#ff7a6a', title: 'Picks locked — deadline passed', sub: 'The Quarterfinals have kicked off. Brackets are read-only now.' }
   };
   const sb = statusMap[derived];
@@ -343,7 +365,7 @@ export function renderBuildP3(ctx) {
       <div style="font-size:11px;color:#9fb3a6;margin-top:1px;">${sb.sub}</div>
     </div>
     <div style="text-align:right;flex:none;">
-      <div style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:${sb.color};">${pickCount}/7</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:${sb.color};">${pickCount}/8</div>
       <div style="font-size:9px;color:#5f7567;font-weight:700;letter-spacing:.06em;">PICKS</div>
     </div>
   </div>`;
@@ -427,6 +449,31 @@ export function renderBuildP3(ctx) {
     </div>`;
   }).join('');
 
+  // 3RD PLACE card: the two SF losers (implied by the player's picks) meet; 7 pts
+  const tCands = thirdCandidates(p3);
+  const tDone = !!p3.t;
+  const tStatus = tDone ? '✓ DONE' : tCands ? 'PICK THE WINNER' : 'PICK BOTH SEMIS FIRST';
+  const tColor = tDone ? '#b6ff3a' : tCands ? '#ffce3a' : '#5f7567';
+  let tInner;
+  if (tCands) {
+    tInner = tCands.map(code => {
+      const flag = (TEAM[code] || {}).flag || '';
+      return teamBtn(code, flag, p3.t, locked, `data-t data-code="${esc(code)}"`);
+    }).join('');
+  } else {
+    tInner = `<div style="padding:11px 9px 13px;font-size:11px;color:#5f7567;line-height:1.4;">Your two SF losers land here — pick both semifinal winners first ↑</div>`;
+  }
+  const thirdCard = `<div style="margin-bottom:14px;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;padding:11px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 9px;">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#d98b46;">🥉 3RD PLACE MATCH</span>
+      <span style="font-size:10px;font-weight:700;color:${tColor};">${tStatus}</span>
+    </div>
+    <div style="background:#0a1813;border:1px solid ${tDone ? '#2c5a38' : '#1c3a28'};border-radius:10px;overflow:hidden;">
+      <div style="font-size:8px;letter-spacing:.1em;color:#5f7567;font-weight:700;padding:6px 9px 0;">BRONZE · 7 PTS</div>
+      ${tInner}
+    </div>
+  </div>`;
+
   // THE FINAL card: the two SF picks meet; tap one to crown the champion
   const finReady = p3.sf[0] && p3.sf[1];
   const finDone = !!p3.f;
@@ -452,31 +499,17 @@ export function renderBuildP3(ctx) {
     </div>
   </div>`;
 
-  // Q6 — number of games decided after 90 minutes (QF + SF + 3rd place + Final = 8)
-  const q6options = Array.from({ length: 9 }, (_, n) =>
-    `<option value="${n}"${String(state.q6) === String(n) ? ' selected' : ''}>${n} game${n === 1 ? '' : 's'}</option>`).join('');
-  const bonus = `<div style="margin:18px 2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;">BONUS QUESTION</div>
-    <div style="background:#0c1710;border:1px solid #1c3a28;border-radius:12px;padding:13px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#ffce3a;font-size:13px;">Q6</span><span style="font-size:12px;color:#cfe0d4;">How many of the 8 games (QF + SF + 3rd place + Final) go past 90 minutes? — worth 7</span></div>
-      <select ${locked ? 'disabled' : 'data-q6'} style="${selectStyle}">
-        <option value="">— pick a number —</option>
-        ${q6options}
-      </select>
-    </div>`;
-
-  // submit gate (q6 can legitimately be 0 — check for '', not falsiness)
+  // submit gate
   const namePicked = state.builderName != null;
-  const q6Answered = state.q6 !== '' && state.q6 != null;
-  const allDone = pickCount >= 7 && q6Answered && namePicked;
+  const allDone = pickCount >= 8 && namePicked;
   const submitDisabled = locked || !allDone;
   const submitStyle = `width:100%;margin-top:18px;padding:15px;border:0;border-radius:13px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.04em;cursor:${submitDisabled ? 'not-allowed' : 'pointer'};background:${submitDisabled ? '#15301f' : 'linear-gradient(90deg,#1a7a43,#7ed957)'};color:${submitDisabled ? '#5f7567' : '#06140a'};`;
   const submitLabel = locked ? '🔒 LOCKED' : 'SUBMIT MY PHASE 3';
   const submitHint = locked
     ? 'The deadline has passed — picks can no longer be changed.'
     : !namePicked ? 'Pick your name first.'
-      : pickCount < 7 ? (7 - pickCount) + ' bracket picks to go.'
-        : !q6Answered ? 'Answer Q6 to finish.'
-          : (SHEET_ENDPOINT_P3 ? 'Saves straight to the league Google Sheet.' : 'Preview mode — copy the JSON and send it to the organizer.');
+      : pickCount < 8 ? (8 - pickCount) + ' bracket picks to go.'
+        : (SHEET_ENDPOINT_P3 ? 'Saves straight to the league Google Sheet.' : 'Preview mode — copy the JSON and send it to the organizer.');
   const submit = (locked || state.submitState === 'done') ? '' : `<button data-submit ${submitDisabled ? 'disabled' : ''} style="${submitStyle}">${submitLabel}</button>
     <div style="font-size:11px;color:#5f7567;text-align:center;margin-top:9px;line-height:1.5;">${submitHint}</div>`;
 
@@ -498,7 +531,7 @@ export function renderBuildP3(ctx) {
 
   return `${header}${lockedNote}${banner}${provisionalNote}${nameSelect}
     <div style="margin:18px 2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;">THE ROAD TO THE FINAL</div>
-    ${sfCards}${finalCard}${bonus}${submit}${confirm}`;
+    ${sfCards}${thirdCard}${finalCard}${submit}${confirm}`;
 }
 
 // Delegated click handler for the Phase 3 Build tab.
@@ -509,6 +542,8 @@ export function handleBuildEventP3(ctx, target) {
   if (qfEl) { state.p3 = applyQF(state.p3, +qfEl.dataset.qf, qfEl.dataset.code); state.submitState = 'idle'; return rerender(); }
   const sfEl = target.closest('[data-sf]');
   if (sfEl) { state.p3 = applySF(state.p3, +sfEl.dataset.sf, sfEl.dataset.code); state.submitState = 'idle'; return rerender(); }
+  const tEl = target.closest('[data-t]');
+  if (tEl) { state.p3 = applyT(state.p3, tEl.dataset.code); state.submitState = 'idle'; return rerender(); }
   const fEl = target.closest('[data-f]');
   if (fEl) { state.p3 = applyF(state.p3, fEl.dataset.code); state.submitState = 'idle'; return rerender(); }
   const submitEl = target.closest('[data-submit]');

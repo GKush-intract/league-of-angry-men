@@ -69,3 +69,14 @@ completeness checks use `!== ''`, not truthiness.
   both R16 games finish ~36h before the deadline, and re-submits are latest-wins.
 - Empty endpoint at launch → preview mode (copy JSON) until the organizer pastes the
   `/exec` URL; same fallback story as Phase 2.
+
+## Amendment 2026-07-08 — Q6 replaced by 3rd-place pick
+
+Rule change from the organizer: the 7-point slot is the **3rd place match winner**,
+not the games-past-90-minutes question. The builder derives the two contenders from
+the player's own picks (the implied SF losers); picks total **8** (4 QF + 2 SF +
+3rd place + champion). Payload: `third: { pick }` replaces `q6`; sheet column `tp`
+(before `f`). The deployed Apps Script must be updated to the new `doPost`
+(same `/exec` URL via Manage deployments → New version) BEFORE anyone submits,
+or third-place picks are silently dropped and the sheet header locks in the old
+q6 layout.

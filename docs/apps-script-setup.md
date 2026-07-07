@@ -155,9 +155,15 @@ On merge, `scripts/fetch-picks.mjs`:
 
 # Phase 3 (QF → Final) — new sheet + endpoint
 
-Phase 3 submissions have a different shape (`qf_1..4`, `sf_1..2`, `f`, `q6`), so they
+Phase 3 submissions have a different shape (`qf_1..4`, `sf_1..2`, `tp`, `f`), so they
 need their **own** Sheet, Apps Script deployment, and published CSV — the Phase 2
 `doPost` has hardcoded r32/r16 columns and would throw on a Phase 3 payload.
+
+> **Rule change 2026-07-08:** the 7-point bonus is the **3rd place match winner**
+> (payload field `third`, column `tp`), not the old Q6 question. If you deployed the
+> earlier q6 version of this script, paste the updated code below into `Code.gs`,
+> then **Deploy ▸ Manage deployments ▸ ✏️ Edit ▸ Version: New version ▸ Deploy** —
+> the `/exec` URL stays the same.
 
 Repeat the Phase 2 steps above with these substitutions:
 
@@ -175,12 +181,12 @@ function doPost(e) {
       var head = ['submittedAt','player','nick'];
       for (var i=1;i<=4;i++) head.push('qf_'+i);
       for (var j=1;j<=2;j++) head.push('sf_'+j);
-      head.push('f','q6'); sh.appendRow(head);
+      head.push('tp','f'); sh.appendRow(head);
     }
     var row = [d.submittedAt || new Date().toISOString(), d.player, d.nick||''];
     for (var i=0;i<4;i++) row.push((d.qf[i] && d.qf[i].pick) || '');
     for (var j=0;j<2;j++) row.push((d.sf[j] && d.sf[j].pick) || '');
-    row.push((d.final && d.final.pick) || '', d.q6 == null ? '' : d.q6);
+    row.push((d.third && d.third.pick) || '', (d.final && d.final.pick) || '');
     sh.appendRow(row);
     return ContentService.createTextOutput('ok');
   } finally {
@@ -204,5 +210,5 @@ function doPost(e) {
 | `nick`        | Optional display nickname.                                        |
 | `qf_1` … `qf_4` | Quarterfinal picks by tie number (bracket order).               |
 | `sf_1` … `sf_2` | Semifinal picks (`sf_1` = winner of QF1/QF2 side).              |
+| `tp`          | 3rd place match winner (one of the player's two implied SF losers). |
 | `f`           | The champion.                                                     |
-| `q6`          | Integer 0–8: games past 90 minutes across QF/SF/3rd-place/Final. `0` is a valid answer. |

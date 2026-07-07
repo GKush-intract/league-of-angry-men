@@ -2,7 +2,7 @@
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, regionTeams } from './compute.js';
 import { renderBuild, handleBuildEvent, renderBuildP3, handleBuildEventP3, bracketModel } from './build.js';
 
-const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},f:''}, q6:'', submitState:'idle', lastPayload:'', copied:false }; /* p3/q6 = Phase 3 builder state (QF/SF/champion picks + bonus) */
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},t:'',f:''}, submitState:'idle', lastPayload:'', copied:false }; /* p3 = Phase 3 builder state (QF/SF picks + t = 3rd-place winner + f = champion) */
 let DATA, TABLES, PROJ, STAND, TEAM, POT, M, AGG;
 
 // Value-for-mode for standings/squad display (NOT the ranking authority — that's
@@ -261,8 +261,8 @@ function viewRules() {
   ${phase('PHASE 3', 'Quarterfinals → Final', 57,
     row('Correct Quarterfinal pick', '6 ea', '24') +
     row('Correct Semifinal pick', '8 ea', '16') +
-    row('Correct Final / champion', '10', '10') +
-    row('<b style="color:#ffce3a;">Q6</b> · No. of games past 90 mins (QF, SF, 3rd, Final)', '7', '7'))}`;
+    row('Correct 3rd place match winner', '7', '7') +
+    row('Correct Final / champion', '10', '10'))}`;
 }
 
 // ---------- People's Bracket (aggregate view) ----------
@@ -624,8 +624,6 @@ document.addEventListener('change', (e) => {
   if (q4El) { state.q4 = q4El.value; state.submitState = 'idle'; render(); return; }
   const q5El = e.target.closest('[data-q5]');
   if (q5El) { state.q5 = q5El.value; state.submitState = 'idle'; render(); return; }
-  const q6El = e.target.closest('[data-q6]');
-  if (q6El) { state.q6 = q6El.value; state.submitState = 'idle'; render(); return; }
 });
 
 boot();
