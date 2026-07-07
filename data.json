@@ -274,23 +274,23 @@
   "results": {},
   "previousRanks": {
     "Shivam Datta": 1,
-    "Garrick Shanpru": 2,
-    "Omargh Lanong": 3,
-    "Kushagra": 4,
-    "Mohit Ghune": 5,
-    "Banshan": 6,
-    "Mohit Agarwal": 7,
-    "Manav": 8,
-    "Prasoon Chaturvedi": 9,
-    "Saket": 10,
-    "Vaibhav Gupta": 11,
-    "Pynk": 12,
-    "Krishna": 13,
-    "Sangam": 14,
-    "Sanjog": 15,
-    "Zac": 16,
-    "Luke Shanpru": 17,
-    "Banmanlang": 18,
+    "Prasoon Chaturvedi": 2,
+    "Garrick Shanpru": 3,
+    "Omargh Lanong": 4,
+    "Kushagra": 5,
+    "Mohit Ghune": 6,
+    "Banshan": 7,
+    "Mohit Agarwal": 8,
+    "Manav": 9,
+    "Sangam": 10,
+    "Banmanlang": 11,
+    "Saket": 12,
+    "Vaibhav Gupta": 13,
+    "Pynk": 14,
+    "Krishna": 15,
+    "Sanjog": 16,
+    "Zac": 17,
+    "Luke Shanpru": 18,
     "Dale shylla": 19,
     "Artet": 20
   },
@@ -3558,6 +3558,8 @@
     "qf": [
       "FRA",
       "MAR",
+      "ESP",
+      "BEL",
       "NOR",
       "ENG"
     ]
@@ -3780,14 +3782,20 @@
       "a": "ESP",
       "date": "2026-07-07",
       "time": "12:30 AM",
-      "done": false
+      "hs": 0,
+      "as": 1,
+      "done": true,
+      "w": "ESP"
     },
     {
       "h": "USA",
       "a": "BEL",
       "date": "2026-07-07",
       "time": "5:30 AM",
-      "done": false
+      "hs": 1,
+      "as": 4,
+      "done": true,
+      "w": "BEL"
     },
     {
       "h": "ARG",
@@ -3808,6 +3816,13 @@
       "a": "MAR",
       "date": "2026-07-10",
       "time": "1:30 AM",
+      "done": false
+    },
+    {
+      "h": "ESP",
+      "a": "BEL",
+      "date": "2026-07-11",
+      "time": "12:30 AM",
       "done": false
     },
     {
