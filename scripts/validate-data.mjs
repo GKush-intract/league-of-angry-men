@@ -84,9 +84,25 @@ export function validate(data) {
     }
   }
 
-  // Phase-2 meta deadline
-  if (data.meta?.phase2Deadline !== undefined && Number.isNaN(Date.parse(data.meta.phase2Deadline)))
-    errors.push('meta.phase2Deadline must be an ISO date string');
+  // Phase-2 / Phase-3 meta deadlines
+  for (const f of ['phase2Deadline', 'phase3Deadline'])
+    if (data.meta?.[f] !== undefined && Number.isNaN(Date.parse(data.meta[f])))
+      errors.push(`meta.${f} must be an ISO date string`);
+
+  // Phase-3 best-guess QF slots: {regionId 0-7: team code}, used only until the
+  // real R16 winner is known for that region.
+  if (data.meta?.qfGuess !== undefined) {
+    const g = data.meta.qfGuess;
+    const all = new Set(Object.values(codeByGroup).flatMap(s => [...s]));
+    if (typeof g !== 'object' || g === null || Array.isArray(g)) {
+      errors.push('meta.qfGuess must be an object');
+    } else {
+      for (const [k, v] of Object.entries(g)) {
+        if (!/^[0-7]$/.test(k)) errors.push(`meta.qfGuess: ${k} is not a region id (0-7)`);
+        if (typeof v !== 'string' || !all.has(v)) errors.push(`meta.qfGuess[${k}]: ${v} is not a valid team code`);
+      }
+    }
+  }
 
   const rows = [];
   for (const p of (data.players || [])) {

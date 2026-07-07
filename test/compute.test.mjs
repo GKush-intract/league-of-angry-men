@@ -4,7 +4,7 @@ import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
   seedTeams, r32Pairings, regions, seedIndex,
-  aggregateBrackets, regionTeams, scorePhase2,
+  aggregateBrackets, regionTeams, scorePhase2, qfTeams,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -267,4 +267,41 @@ test('buildStandings uses live Phase-2 score when koResults provided (ignores ma
   // without ko, falls back to the manual p2 field
   const s2 = buildStandings(players, proj, {}, 'p2');
   assert.equal(s2.find(x => x.name === 'A').p2, 99);
+});
+
+// ---------- Phase 3: qfTeams ----------
+const R16_16 = ['PAR','FRA','CAN','MAR','POR','ESP','USA','BEL','BRA','NOR','MEX','ENG','ARG','EGY','SUI','COL'];
+const koMatch = (h, a, w) => ({ h, a, done: true, w });
+
+test('qfTeams derives all 8 QF teams from R16 results in bracket order', () => {
+  const koMatches = [
+    koMatch('PAR','FRA','FRA'), koMatch('CAN','MAR','MAR'), koMatch('POR','ESP','ESP'), koMatch('USA','BEL','BEL'),
+    koMatch('BRA','NOR','NOR'), koMatch('MEX','ENG','ENG'), koMatch('ARG','EGY','ARG'), koMatch('SUI','COL','COL'),
+  ];
+  const { teams, guessed } = qfTeams({ r16: R16_16 }, koMatches, {});
+  assert.deepEqual(teams, ['FRA','MAR','ESP','BEL','NOR','ENG','ARG','COL']);
+  assert.deepEqual(guessed, []);
+});
+
+test('qfTeams matches home/away in either order', () => {
+  const koMatches = [koMatch('FRA','PAR','FRA')]; // reversed vs r16 order
+  const { teams } = qfTeams({ r16: R16_16 }, koMatches, {});
+  assert.equal(teams[0], 'FRA');
+});
+
+test('qfTeams falls back to guesses for unresolved regions and flags them', () => {
+  const koMatches = [
+    koMatch('PAR','FRA','FRA'), koMatch('CAN','MAR','MAR'), koMatch('POR','ESP','ESP'), koMatch('USA','BEL','BEL'),
+    koMatch('BRA','NOR','NOR'), koMatch('MEX','ENG','ENG'),
+    { h: 'ARG', a: 'EGY', done: false }, // scheduled, not played
+  ];
+  const { teams, guessed } = qfTeams({ r16: R16_16 }, koMatches, { 6: 'ARG', '7': 'COL' });
+  assert.deepEqual(teams, ['FRA','MAR','ESP','BEL','NOR','ENG','ARG','COL']);
+  assert.deepEqual(guessed, [6, 7]);
+});
+
+test('qfTeams leaves unresolved regions null without a guess', () => {
+  const { teams, guessed } = qfTeams({ r16: R16_16 }, [], {});
+  assert.deepEqual(teams, Array(8).fill(null));
+  assert.deepEqual(guessed, []);
 });

@@ -1,8 +1,8 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, regionTeams } from './compute.js';
-import { renderBuild, handleBuildEvent, bracketModel } from './build.js';
+import { renderBuild, handleBuildEvent, renderBuildP3, handleBuildEventP3, bracketModel } from './build.js';
 
-const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', submitState:'idle', lastPayload:'', copied:false }; /* picks/builderName/q4/q5/submitState/lastPayload/copied/zoom/matchSub filled by Tasks 5/7/9 */
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},f:''}, q6:'', submitState:'idle', lastPayload:'', copied:false }; /* p3/q6 = Phase 3 builder state (QF/SF/champion picks + bonus) */
 let DATA, TABLES, PROJ, STAND, TEAM, POT, M, AGG;
 
 // Value-for-mode for standings/squad display (NOT the ranking authority — that's
@@ -13,9 +13,9 @@ const $view = () => document.getElementById('view');
 const $overlay = () => document.getElementById('overlay');
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// Build tab removed once Phase 2 picks closed (the renderBuild route + build.js are
-// kept intact — re-add ['build','Build','✏️'] here to reopen for Phase 3).
-const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
+// Build tab reopened for Phase 3 (QF→Final picks). The Build route dispatches on
+// meta.phase: >= 3 renders the Phase 3 builder, else the (retired) Phase 2 one.
+const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['build','Build','✏️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
 const medal = (r) => r === 1 ? ['#ffce3a', '#1a1400'] : r === 2 ? ['#cfd8d4', '#10201a'] : r === 3 ? ['#d98b46', '#160d04'] : ['#15301f', '#7fd0a0'];
 function tagFor(rank, n) {
   if (rank === 1) return ['👑 TOP OF THE TABLE', '#ffce3a'];
@@ -58,7 +58,7 @@ function buildCtx() { return { DATA, TABLES, PROJ, TEAM, state, rerender: render
 let lastRenderedTab = null;
 function render() {
   renderNav();
-  const views = { standings: viewStandings, bracket: viewBracket, build: () => renderBuild(buildCtx()), players: viewPlayers, matches: viewMatches, rules: viewRules };
+  const views = { standings: viewStandings, bracket: viewBracket, build: () => (DATA.meta?.phase >= 3 ? renderBuildP3 : renderBuild)(buildCtx()), players: viewPlayers, matches: viewMatches, rules: viewRules };
   $view().innerHTML = (views[state.tab] || viewStandings)();
   // Only jump to top when the tab actually changes; preserve scroll for in-tab
   // re-renders (picking a bracket team, zoom, standings-mode/sub-tab toggles).
@@ -601,7 +601,7 @@ function renderOverlay() {
 document.addEventListener('click', (e) => {
   const nav = e.target.closest('[data-tab]');
   if (nav) { state.tab = nav.dataset.tab; state.selected = null; state.openMatch = null; render(); return; }
-  if (state.tab === 'build') { handleBuildEvent(buildCtx(), e.target); return; }
+  if (state.tab === 'build') { (DATA.meta?.phase >= 3 ? handleBuildEventP3 : handleBuildEvent)(buildCtx(), e.target); return; }
   const seg = e.target.closest('[data-mode]');
   if (seg) { state.standMode = seg.dataset.mode; recompute(); render(); return; }
   const sub = e.target.closest('[data-sub]');
@@ -624,6 +624,8 @@ document.addEventListener('change', (e) => {
   if (q4El) { state.q4 = q4El.value; state.submitState = 'idle'; render(); return; }
   const q5El = e.target.closest('[data-q5]');
   if (q5El) { state.q5 = q5El.value; state.submitState = 'idle'; render(); return; }
+  const q6El = e.target.closest('[data-q6]');
+  if (q6El) { state.q6 = q6El.value; state.submitState = 'idle'; render(); return; }
 });
 
 boot();

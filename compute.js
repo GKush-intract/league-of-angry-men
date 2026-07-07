@@ -183,6 +183,31 @@ export function regionTeams(reg, r32) {
   return [r32[reg.m[0]].a, r32[reg.m[0]].b, r32[reg.m[1]].a, r32[reg.m[1]].b];
 }
 
+// Phase 3: the 8 QF teams in bracket order (winners of R16 regions 0-7).
+// koResults.r16 holds the 16 R32 winners in tie order, so region j's R16 tie is
+// (r16[2j], r16[2j+1]); its winner is looked up in koMatches (h/a in either order).
+// Unresolved regions fall back to `guesses` ({regionId: code}) — the organizer's
+// best guess until the real result lands; those indices are reported in `guessed`
+// so the UI can flag them as provisional.
+export function qfTeams(koResults, koMatches, guesses = {}) {
+  const r16 = (koResults && koResults.r16) || [];
+  const teams = [], guessed = [];
+  for (let j = 0; j < 8; j++) {
+    const a = r16[2 * j], b = r16[2 * j + 1];
+    let w = null;
+    if (a && b) {
+      const m = (koMatches || []).find(m => (m.h === a && m.a === b) || (m.h === b && m.a === a));
+      if (m && m.done && m.w) w = m.w;
+    }
+    if (!w) {
+      w = guesses[j] ?? guesses[String(j)] ?? null;
+      if (w) guessed.push(j);
+    }
+    teams.push(w);
+  }
+  return { teams, guessed };
+}
+
 // Aggregate stored player brackets. players: [{name, bracket:{r32:{mid:code}, r16:{rid:code}}}]
 export function aggregateBrackets(players, r32, regs) {
   const out = { r32: {}, r16: {} };

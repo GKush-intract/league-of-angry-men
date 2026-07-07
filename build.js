@@ -1,6 +1,7 @@
-// build.js — Phase 2 interactive bracket builder (the only input screen).
-import { seedTeams, seedIndex, r32Pairings, regions } from './compute.js';
-import { SHEET_ENDPOINT } from './config.js';
+// build.js — interactive bracket builders (the only input screens).
+// Phase 2 (R32+R16) is kept intact below; Phase 3 (QF→Final) follows it.
+import { seedTeams, seedIndex, r32Pairings, regions, qfTeams } from './compute.js';
+import { SHEET_ENDPOINT, SHEET_ENDPOINT_P3 } from './config.js';
 
 // Build the knockout model. If data.json supplies an explicit `bracketR32` (16
 // [aCode, bCode] pairs in bracket order — the REAL FIFA draw), use it verbatim;
@@ -243,6 +244,275 @@ export function handleBuildEvent(ctx, target) {
   if (r16el) { state.picks = applyR16(state.picks, +r16el.dataset.r16, r16el.dataset.code); state.submitState = 'idle'; return rerender(); }
   const submitEl = target.closest('[data-submit]');
   if (submitEl && !submitEl.disabled) { return submitBracket(ctx, bracketModel(ctx.TABLES, ctx.PROJ, ctx.DATA.bracketR32, ctx.TEAM)); }
+  const copyEl = target.closest('[data-copy]');
+  if (copyEl) { if (navigator.clipboard) navigator.clipboard.writeText(state.lastPayload).then(() => { state.copied = true; rerender(); }).catch(() => {}); return; }
+  const resetEl = target.closest('[data-reset]');
+  if (resetEl) { state.submitState = 'idle'; return rerender(); }
+}
+
+// ==================== Phase 3 (QF → Final) ====================
+
+// QF model from real knockout results; unresolved slots use meta.qfGuess and are
+// flagged in `guessed` (region ids) so the UI can mark them provisional.
+export function p3Model(DATA, TEAM) {
+  const { teams, guessed } = qfTeams(DATA.koResults, DATA.koMatches, DATA.meta?.qfGuess || {});
+  const mk = c => ({ code: c || '', name: (c && TEAM && TEAM[c] && TEAM[c].name) || c || '', flag: (c && TEAM && TEAM[c] && TEAM[c].flag) || '' });
+  const qf = [0, 1, 2, 3].map(k => ({ id: k, a: mk(teams[2 * k]), b: mk(teams[2 * k + 1]) }));
+  return { qf, guessed };
+}
+export function isLockedP3(DATA) {
+  const d = DATA.meta?.phase3Deadline;
+  return !!d && Date.now() >= Date.parse(d);
+}
+// p3 = { qf: {0..3: code}, sf: {0..1: code}, f: code|'' } — 7 picks total.
+export function p3PickCounts(p3) {
+  const qfdone = [0, 1, 2, 3].filter(k => p3.qf[k]).length;
+  const sfdone = [0, 1].filter(s => p3.sf[s]).length;
+  const fdone = p3.f ? 1 : 0;
+  return { qfdone, sfdone, fdone, total: qfdone + sfdone + fdone };
+}
+// Choosing a QF winner clears any downstream pick it invalidates (SF, then champion).
+export function applyQF(p3, k, code) {
+  const np = { qf: { ...p3.qf, [k]: code }, sf: { ...p3.sf }, f: p3.f };
+  const s = Math.floor(k / 2), f0 = np.qf[2 * s], f1 = np.qf[2 * s + 1];
+  if (np.sf[s] && np.sf[s] !== f0 && np.sf[s] !== f1) delete np.sf[s];
+  if (np.f && np.f !== np.sf[0] && np.f !== np.sf[1]) np.f = '';
+  return np;
+}
+export function applySF(p3, s, code) {
+  const np = { qf: { ...p3.qf }, sf: { ...p3.sf, [s]: code }, f: p3.f };
+  if (np.f && np.f !== np.sf[0] && np.f !== np.sf[1]) np.f = '';
+  return np;
+}
+export function applyF(p3, code) {
+  return { qf: { ...p3.qf }, sf: { ...p3.sf }, f: code };
+}
+
+export function buildPayloadP3(ctx, M) {
+  const { DATA, state } = ctx;
+  const p = DATA.players[state.builderName] || { name: '?', nick: '' };
+  const qf = M.qf.map(m => ({ tie: m.id + 1, matchup: m.a.code + ' v ' + m.b.code, pick: state.p3.qf[m.id] || null }));
+  const sf = [0, 1].map(s => ({ tie: s + 1, pick: state.p3.sf[s] || null }));
+  return JSON.stringify({ player: p.name, nick: p.nick || '', phase: 3, submittedAt: new Date().toISOString(), qf, sf, final: { pick: state.p3.f || null }, q6: state.q6 === '' || state.q6 == null ? null : +state.q6 }, null, 2);
+}
+
+export function submitBracketP3(ctx, M) {
+  const payload = buildPayloadP3(ctx, M);
+  if (SHEET_ENDPOINT_P3) {
+    fetch(SHEET_ENDPOINT_P3, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload }).catch(() => {});
+  }
+  ctx.state.submitState = 'done'; ctx.state.lastPayload = payload; ctx.state.copied = false;
+  ctx.rerender();
+}
+
+export function renderBuildP3(ctx) {
+  const { DATA, TEAM, state } = ctx;
+  const M = p3Model(DATA, TEAM);
+  const locked = isLockedP3(DATA);
+  const p3 = state.p3 || { qf: {}, sf: {}, f: '' };
+  const { total: pickCount } = p3PickCounts(p3);
+
+  const header = `<div style="margin:16px 2px 10px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;line-height:1;">BUILD YOUR RUN-IN</div>
+      <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Phase 3 · pick 4 QF winners (6 pts), 2 SF winners (8 pts) and the champion (10 pts).</div>
+    </div>`;
+
+  // Hard gate: the QF bracket needs all 8 teams (results or best-guess) to render.
+  if (M.qf.some(m => !m.a.code || !m.b.code)) {
+    return `${header}<div style="background:#0c1710;border:1px dashed #1c3a28;border-radius:11px;padding:18px;text-align:center;color:#5f7567;font-size:12px;">The Quarterfinal line-up isn't settled yet — check back once the Round of 16 wraps up.</div>`;
+  }
+
+  let derived;
+  if (locked) derived = 'locked';
+  else if (pickCount === 0) derived = 'empty';
+  else if (pickCount >= 7) derived = 'complete';
+  else derived = 'partial';
+
+  const statusMap = {
+    empty: { icon: '○', color: '#7fd0a0', title: 'Bracket open', sub: 'Tap a team in each QF to send it through.' },
+    partial: { icon: '◐', color: '#ffce3a', title: 'In progress', sub: 'Keep going — finish the QFs, SFs and the final.' },
+    complete: { icon: '●', color: '#b6ff3a', title: 'Ready to submit', sub: 'All 7 picks in. Lock it in below.' },
+    locked: { icon: '🔒', color: '#ff7a6a', title: 'Picks locked — deadline passed', sub: 'The Quarterfinals have kicked off. Brackets are read-only now.' }
+  };
+  const sb = statusMap[derived];
+  const bannerStyle = `display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:12px;background:${derived === 'locked' ? 'rgba(255,122,106,.08)' : derived === 'complete' ? 'rgba(182,255,58,.07)' : '#0c1710'};border:1px solid ${derived === 'locked' ? '#5a3030' : derived === 'complete' ? '#2c5a38' : '#1c3a28'};`;
+  const banner = `<div style="${bannerStyle}">
+    <span style="font-size:15px;">${sb.icon}</span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.02em;color:${sb.color};">${sb.title}</div>
+      <div style="font-size:11px;color:#9fb3a6;margin-top:1px;">${sb.sub}</div>
+    </div>
+    <div style="text-align:right;flex:none;">
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:${sb.color};">${pickCount}/7</div>
+      <div style="font-size:9px;color:#5f7567;font-weight:700;letter-spacing:.06em;">PICKS</div>
+    </div>
+  </div>`;
+
+  // provisional-slot note (best-guess QF teams until the last R16 results land)
+  const guessedCodes = M.guessed.flatMap(j => {
+    const m = M.qf[Math.floor(j / 2)];
+    return [j % 2 === 0 ? m.a.code : m.b.code];
+  }).filter(Boolean);
+  const provisionalNote = guessedCodes.length
+    ? `<div style="margin:12px 2px;padding:11px 13px;background:rgba(255,206,58,.07);border:1px solid #5a4a1c;border-radius:11px;font-size:12px;color:#e9d9a0;line-height:1.45;">⏳ ${guessedCodes.map(esc).join(' and ')} ${guessedCodes.length > 1 ? 'are' : 'is'} a best guess — the last R16 games aren't done. The bracket corrects itself automatically once they finish; re-submit if your pick is affected.</div>`
+    : '';
+
+  const lockedNote = locked
+    ? `<div style="margin:12px 2px;padding:11px 13px;background:rgba(255,122,106,.08);border:1px solid #5a3030;border-radius:11px;font-size:12px;color:#ff9a8c;line-height:1.45;">🔒 Picks are locked — the Phase 3 deadline has passed. The bracket below is read-only.</div>`
+    : '';
+
+  // name select
+  const selectStyle = `width:100%;padding:11px 12px;background:#0a1813;border:1px solid #1c3a28;border-radius:11px;color:#eef5ec;font-size:14px;font-weight:600;-webkit-appearance:none;appearance:none;cursor:pointer;${locked ? 'opacity:.55;' : ''}`;
+  const nameOptions = (DATA.players || []).map((p, i) => {
+    const sel = state.builderName != null && Number(state.builderName) === i ? ' selected' : '';
+    const label = p.nick ? `${p.name} · ${p.nick}` : p.name;
+    return `<option value="${i}"${sel}>${esc(label)}</option>`;
+  }).join('');
+  const nameSelect = `<div style="margin:14px 2px 6px;font-size:9px;letter-spacing:.12em;color:#5f7567;font-weight:700;">WHO ARE YOU?</div>
+    <select ${locked ? 'disabled' : 'data-name'} style="${selectStyle}">
+      <option value="">— select your name —</option>
+      ${nameOptions}
+    </select>`;
+
+  const connector = `<div style="width:26px;flex:none;position:relative;">
+      <div style="position:absolute;left:0;top:25%;width:13px;height:1px;background:#2c5a38;"></div>
+      <div style="position:absolute;left:0;top:75%;width:13px;height:1px;background:#2c5a38;"></div>
+      <div style="position:absolute;left:13px;top:25%;height:50%;width:1px;background:#2c5a38;"></div>
+      <div style="position:absolute;left:13px;top:50%;width:13px;height:1px;background:#2c5a38;"></div>
+    </div>`;
+
+  // two SEMIFINAL cards: QF ties 2s and 2s+1 feed SF s
+  const sfCards = [0, 1].map(s => {
+    const mids = [2 * s, 2 * s + 1];
+    const f0 = p3.qf[mids[0]], f1 = p3.qf[mids[1]], ready = f0 && f1;
+    const sfSel = p3.sf[s];
+    const done = !!sfSel, partial = !!(f0 || f1);
+    const statusText = done ? '✓ DONE' : ready ? 'PICK THE SF' : partial ? 'IN PROGRESS' : 'TAP A TEAM';
+    const statusColor = done ? '#b6ff3a' : ready ? '#ffce3a' : '#5f7567';
+    const sfBorder = done ? '#2c5a38' : '#1c3a28';
+
+    const matches = mids.map(k => {
+      const m = M.qf[k], sel = p3.qf[k];
+      return `<div style="background:#0a1813;border:1px solid #1c3a28;border-radius:10px;overflow:hidden;">
+        ${teamBtn(m.a.code, m.a.flag, sel, locked, `data-qf="${k}" data-code="${esc(m.a.code)}"`)}
+        ${teamBtn(m.b.code, m.b.flag, sel, locked, `data-qf="${k}" data-code="${esc(m.b.code)}"`)}
+      </div>`;
+    }).join('');
+
+    let sfInner;
+    if (ready) {
+      sfInner = [f0, f1].map(code => {
+        const flag = (TEAM[code] || {}).flag || '';
+        return teamBtn(code, flag, sfSel, locked, `data-sf="${s}" data-code="${esc(code)}"`);
+      }).join('');
+    } else {
+      sfInner = `<div style="padding:11px 9px 13px;font-size:11px;color:#5f7567;line-height:1.4;">Pick both QF winners first ↑</div>`;
+    }
+
+    return `<div style="margin-bottom:14px;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;padding:11px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 9px;">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#7fd0a0;">SEMIFINAL ${s + 1}</span>
+        <span style="font-size:10px;font-weight:700;color:${statusColor};">${statusText}</span>
+      </div>
+      <div style="display:flex;align-items:stretch;gap:0;">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:9px;">${matches}</div>
+        ${connector}
+        <div style="flex:1;min-width:0;display:flex;align-items:center;">
+          <div style="width:100%;background:#0a1813;border:1px solid ${sfBorder};border-radius:10px;overflow:hidden;">
+            <div style="font-size:8px;letter-spacing:.1em;color:#5f7567;font-weight:700;padding:6px 9px 0;">SF → FINAL</div>
+            ${sfInner}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // THE FINAL card: the two SF picks meet; tap one to crown the champion
+  const finReady = p3.sf[0] && p3.sf[1];
+  const finDone = !!p3.f;
+  const finStatus = finDone ? '✓ DONE' : finReady ? 'PICK THE CHAMPION' : 'PICK BOTH SEMIS FIRST';
+  const finColor = finDone ? '#b6ff3a' : finReady ? '#ffce3a' : '#5f7567';
+  let finInner;
+  if (finReady) {
+    finInner = [p3.sf[0], p3.sf[1]].map(code => {
+      const flag = (TEAM[code] || {}).flag || '';
+      return teamBtn(code, flag, p3.f, locked, `data-f data-code="${esc(code)}"`);
+    }).join('');
+  } else {
+    finInner = `<div style="padding:11px 9px 13px;font-size:11px;color:#5f7567;line-height:1.4;">Pick both semifinal winners first ↑</div>`;
+  }
+  const finalCard = `<div style="margin-bottom:14px;background:#0c1710;border:1px solid ${finDone ? '#5a4a1c' : '#1c3a28'};border-radius:14px;padding:11px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 9px;">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#ffce3a;">🏆 THE FINAL</span>
+      <span style="font-size:10px;font-weight:700;color:${finColor};">${finStatus}</span>
+    </div>
+    <div style="background:#0a1813;border:1px solid ${finDone ? '#5a4a1c' : '#1c3a28'};border-radius:10px;overflow:hidden;">
+      <div style="font-size:8px;letter-spacing:.1em;color:#5f7567;font-weight:700;padding:6px 9px 0;">CHAMPION · 10 PTS</div>
+      ${finInner}
+    </div>
+  </div>`;
+
+  // Q6 — number of games decided after 90 minutes (QF + SF + 3rd place + Final = 8)
+  const q6options = Array.from({ length: 9 }, (_, n) =>
+    `<option value="${n}"${String(state.q6) === String(n) ? ' selected' : ''}>${n} game${n === 1 ? '' : 's'}</option>`).join('');
+  const bonus = `<div style="margin:18px 2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;">BONUS QUESTION</div>
+    <div style="background:#0c1710;border:1px solid #1c3a28;border-radius:12px;padding:13px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:#ffce3a;font-size:13px;">Q6</span><span style="font-size:12px;color:#cfe0d4;">How many of the 8 games (QF + SF + 3rd place + Final) go past 90 minutes? — worth 7</span></div>
+      <select ${locked ? 'disabled' : 'data-q6'} style="${selectStyle}">
+        <option value="">— pick a number —</option>
+        ${q6options}
+      </select>
+    </div>`;
+
+  // submit gate (q6 can legitimately be 0 — check for '', not falsiness)
+  const namePicked = state.builderName != null;
+  const q6Answered = state.q6 !== '' && state.q6 != null;
+  const allDone = pickCount >= 7 && q6Answered && namePicked;
+  const submitDisabled = locked || !allDone;
+  const submitStyle = `width:100%;margin-top:18px;padding:15px;border:0;border-radius:13px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.04em;cursor:${submitDisabled ? 'not-allowed' : 'pointer'};background:${submitDisabled ? '#15301f' : 'linear-gradient(90deg,#1a7a43,#7ed957)'};color:${submitDisabled ? '#5f7567' : '#06140a'};`;
+  const submitLabel = locked ? '🔒 LOCKED' : 'SUBMIT MY PHASE 3';
+  const submitHint = locked
+    ? 'The deadline has passed — picks can no longer be changed.'
+    : !namePicked ? 'Pick your name first.'
+      : pickCount < 7 ? (7 - pickCount) + ' bracket picks to go.'
+        : !q6Answered ? 'Answer Q6 to finish.'
+          : (SHEET_ENDPOINT_P3 ? 'Saves straight to the league Google Sheet.' : 'Preview mode — copy the JSON and send it to the organizer.');
+  const submit = (locked || state.submitState === 'done') ? '' : `<button data-submit ${submitDisabled ? 'disabled' : ''} style="${submitStyle}">${submitLabel}</button>
+    <div style="font-size:11px;color:#5f7567;text-align:center;margin-top:9px;line-height:1.5;">${submitHint}</div>`;
+
+  let confirm = '';
+  if (state.submitState === 'done') {
+    const confirmTitle = SHEET_ENDPOINT_P3 ? 'Phase 3 submitted!' : 'Phase 3 captured (preview)';
+    const confirmSub = SHEET_ENDPOINT_P3 ? 'Saved to the league sheet. Talk your trash in the group chat.' : 'No Sheet connected yet — copy this and send it to the organizer, or wire up Apps Script.';
+    const copyLabel = state.copied ? 'Copied!' : 'Copy JSON';
+    confirm = `<div style="margin-top:14px;padding:15px;background:linear-gradient(150deg,#15351f,#0c1f14);border:1px solid #2c5a38;border-radius:14px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:#b6ff3a;">✓ ${confirmTitle}</div>
+      <div style="font-size:12px;color:#cfe0d4;margin-top:5px;line-height:1.5;">${confirmSub}</div>
+      <pre style="margin:11px 0 0;padding:11px;background:#06100a;border:1px solid #1c3a28;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#9fb3a6;white-space:pre-wrap;word-break:break-word;max-height:170px;overflow:auto;">${esc(state.lastPayload || '')}</pre>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button data-copy style="flex:1;padding:10px;background:#15301f;border:1px solid #2c5a38;border-radius:9px;color:#b6ff3a;font-weight:700;font-size:12px;cursor:pointer;">${copyLabel}</button>
+        <button data-reset style="flex:1;padding:10px;background:transparent;border:1px solid #1c3a28;border-radius:9px;color:#9fb3a6;font-weight:700;font-size:12px;cursor:pointer;">Edit again</button>
+      </div>
+    </div>`;
+  }
+
+  return `${header}${lockedNote}${banner}${provisionalNote}${nameSelect}
+    <div style="margin:18px 2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;">THE ROAD TO THE FINAL</div>
+    ${sfCards}${finalCard}${bonus}${submit}${confirm}`;
+}
+
+// Delegated click handler for the Phase 3 Build tab.
+export function handleBuildEventP3(ctx, target) {
+  const { DATA, state, rerender } = ctx;
+  if (isLockedP3(DATA)) return;
+  const qfEl = target.closest('[data-qf]');
+  if (qfEl) { state.p3 = applyQF(state.p3, +qfEl.dataset.qf, qfEl.dataset.code); state.submitState = 'idle'; return rerender(); }
+  const sfEl = target.closest('[data-sf]');
+  if (sfEl) { state.p3 = applySF(state.p3, +sfEl.dataset.sf, sfEl.dataset.code); state.submitState = 'idle'; return rerender(); }
+  const fEl = target.closest('[data-f]');
+  if (fEl) { state.p3 = applyF(state.p3, fEl.dataset.code); state.submitState = 'idle'; return rerender(); }
+  const submitEl = target.closest('[data-submit]');
+  if (submitEl && !submitEl.disabled) { return submitBracketP3(ctx, p3Model(ctx.DATA, ctx.TEAM)); }
   const copyEl = target.closest('[data-copy]');
   if (copyEl) { if (navigator.clipboard) navigator.clipboard.writeText(state.lastPayload).then(() => { state.copied = true; rerender(); }).catch(() => {}); return; }
   const resetEl = target.closest('[data-reset]');

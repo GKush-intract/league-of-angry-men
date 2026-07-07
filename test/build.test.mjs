@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyR32, applyR16, pickCounts, buildPayload, bracketModel } from '../build.js';
+import { applyR32, applyR16, pickCounts, buildPayload, bracketModel, p3Model, applyQF, applySF, p3PickCounts, buildPayloadP3, isLockedP3 } from '../build.js';
 import { parsePicksCsv } from '../scripts/fetch-picks.mjs';
 
 test('applyR16 then invalidating R32 clears the R16 pick', () => {
@@ -102,4 +102,81 @@ test('bracketModel uses explicit bracketR32 (real draw) in bracket order', () =>
   assert.equal(M.r32[0].a.name, 'Home Zero');         // mapped from TEAM when present
   assert.equal(M.r32[1].a.name, ex[1][0]);            // falls back to code when not in TEAM
   assert.equal(M.r32[15].a.code, ex[15][0]);
+});
+
+// ---------- Phase 3 builder logic ----------
+const P3_TEAMS = ['FRA','MAR','ESP','BEL','NOR','ENG','ARG','COL'];
+const P3_DATA = {
+  meta: { phase: 3, qfGuess: {} },
+  players: [{ name: 'Artet', nick: 'gunner' }],
+  koResults: { r16: ['PAR','FRA','CAN','MAR','POR','ESP','USA','BEL','BRA','NOR','MEX','ENG','ARG','EGY','SUI','COL'] },
+  koMatches: [
+    { h:'PAR',a:'FRA',done:true,w:'FRA' }, { h:'CAN',a:'MAR',done:true,w:'MAR' },
+    { h:'POR',a:'ESP',done:true,w:'ESP' }, { h:'USA',a:'BEL',done:true,w:'BEL' },
+    { h:'BRA',a:'NOR',done:true,w:'NOR' }, { h:'MEX',a:'ENG',done:true,w:'ENG' },
+    { h:'ARG',a:'EGY',done:true,w:'ARG' }, { h:'SUI',a:'COL',done:true,w:'COL' },
+  ],
+};
+
+test('p3Model pairs QF teams into 4 ties in bracket order', () => {
+  const M = p3Model(P3_DATA, {});
+  assert.deepEqual(M.qf.map(m => [m.a.code, m.b.code]),
+    [['FRA','MAR'],['ESP','BEL'],['NOR','ENG'],['ARG','COL']]);
+  assert.deepEqual(M.guessed, []);
+});
+
+test('applyQF clears an invalidated SF pick and champion', () => {
+  let p3 = { qf: { 0:'FRA', 1:'ESP' }, sf: { 0:'FRA' }, f: 'FRA' };
+  p3 = applyQF(p3, 0, 'MAR');            // FRA no longer reaches the SF
+  assert.equal(p3.sf[0], undefined);
+  assert.equal(p3.f, '');
+  assert.equal(p3.qf[0], 'MAR');
+});
+
+test('applyQF keeps a still-valid SF pick and champion', () => {
+  let p3 = { qf: { 0:'FRA', 1:'ESP' }, sf: { 0:'ESP' }, f: 'ESP' };
+  p3 = applyQF(p3, 0, 'MAR');            // SF pick was ESP — untouched
+  assert.equal(p3.sf[0], 'ESP');
+  assert.equal(p3.f, 'ESP');
+});
+
+test('applySF clears an invalidated champion', () => {
+  let p3 = { qf: {}, sf: { 0:'FRA', 1:'NOR' }, f: 'NOR' };
+  p3 = applySF(p3, 1, 'ENG');
+  assert.equal(p3.f, '');
+  p3 = applySF(p3, 0, 'MAR');            // champion already cleared, stays ''
+  assert.equal(p3.f, '');
+});
+
+test('p3PickCounts totals qf + sf + final', () => {
+  const { total, qfdone, sfdone, fdone } = p3PickCounts({ qf: { 0:'FRA', 2:'NOR' }, sf: { 1:'ENG' }, f: 'ENG' });
+  assert.equal(qfdone, 2); assert.equal(sfdone, 1); assert.equal(fdone, 1); assert.equal(total, 4);
+});
+
+test('buildPayloadP3 produces 4 qf + 2 sf + final + numeric q6', () => {
+  const M = p3Model(P3_DATA, {});
+  const state = { builderName: 0, q6: '0', p3: { qf: { 0:'FRA',1:'BEL',2:'ENG',3:'ARG' }, sf: { 0:'FRA',1:'ARG' }, f: 'ARG' } };
+  const out = JSON.parse(buildPayloadP3({ DATA: P3_DATA, state }, M));
+  assert.equal(out.phase, 3);
+  assert.equal(out.player, 'Artet');
+  assert.equal(out.qf.length, 4);
+  assert.deepEqual(out.qf[0], { tie: 1, matchup: 'FRA v MAR', pick: 'FRA' });
+  assert.deepEqual(out.sf.map(s => s.pick), ['FRA','ARG']);
+  assert.equal(out.final.pick, 'ARG');
+  assert.equal(out.q6, 0);               // '0' is a real answer, not "unanswered"
+});
+
+test('buildPayloadP3 leaves unanswered picks/q6 null', () => {
+  const M = p3Model(P3_DATA, {});
+  const state = { builderName: 0, q6: '', p3: { qf: {}, sf: {}, f: '' } };
+  const out = JSON.parse(buildPayloadP3({ DATA: P3_DATA, state }, M));
+  assert.equal(out.qf[0].pick, null);
+  assert.equal(out.final.pick, null);
+  assert.equal(out.q6, null);
+});
+
+test('isLockedP3 respects meta.phase3Deadline', () => {
+  assert.equal(isLockedP3({ meta: { phase3Deadline: '2000-01-01T00:00:00Z' } }), true);
+  assert.equal(isLockedP3({ meta: { phase3Deadline: '2099-01-01T00:00:00Z' } }), false);
+  assert.equal(isLockedP3({ meta: {} }), false);
 });

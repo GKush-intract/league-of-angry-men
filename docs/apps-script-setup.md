@@ -150,3 +150,59 @@ On merge, `scripts/fetch-picks.mjs`:
 - Stores picks back as zero-based keys: `r32_1` → `bracket.r32["0"]`,
   `r16_1` → `bracket.r16["0"]`, etc.
 - Keeps only the most recent row per player (by `submittedAt`).
+
+---
+
+# Phase 3 (QF → Final) — new sheet + endpoint
+
+Phase 3 submissions have a different shape (`qf_1..4`, `sf_1..2`, `f`, `q6`), so they
+need their **own** Sheet, Apps Script deployment, and published CSV — the Phase 2
+`doPost` has hardcoded r32/r16 columns and would throw on a Phase 3 payload.
+
+Repeat the Phase 2 steps above with these substitutions:
+
+1. **New sheet:** e.g. **FIFA WC 2026 — Phase 3 Picks**.
+2. **`doPost` code:**
+
+```js
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);                  // serialize concurrent submissions
+  try {
+    var d = JSON.parse(e.postData.contents);
+    var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    if (sh.getLastRow() === 0) {
+      var head = ['submittedAt','player','nick'];
+      for (var i=1;i<=4;i++) head.push('qf_'+i);
+      for (var j=1;j<=2;j++) head.push('sf_'+j);
+      head.push('f','q6'); sh.appendRow(head);
+    }
+    var row = [d.submittedAt || new Date().toISOString(), d.player, d.nick||''];
+    for (var i=0;i<4;i++) row.push((d.qf[i] && d.qf[i].pick) || '');
+    for (var j=0;j<2;j++) row.push((d.sf[j] && d.sf[j].pick) || '');
+    row.push((d.final && d.final.pick) || '', d.q6 == null ? '' : d.q6);
+    sh.appendRow(row);
+    return ContentService.createTextOutput('ok');
+  } finally {
+    lock.releaseLock();
+  }
+}
+```
+
+3. **Deploy as Web app** (same settings) and paste the new `/exec` URL into
+   `config.js` as **`SHEET_ENDPOINT_P3`** (it ships as `''` = preview mode).
+4. **Publish the sheet as CSV** and add the URL as the **`PICKS3_CSV_URL`** repo
+   secret — consumed by the Phase 3 sync (second effort; the secret name is
+   reserved now so the doc and workflow stay consistent).
+
+## Phase 3 column layout
+
+| Column        | Meaning                                                          |
+|---------------|------------------------------------------------------------------|
+| `submittedAt` | ISO timestamp; the merge keeps the **latest** row per player.     |
+| `player`      | Canonical `name` from `data.json`.                                |
+| `nick`        | Optional display nickname.                                        |
+| `qf_1` … `qf_4` | Quarterfinal picks by tie number (bracket order).               |
+| `sf_1` … `sf_2` | Semifinal picks (`sf_1` = winner of QF1/QF2 side).              |
+| `f`           | The champion.                                                     |
+| `q6`          | Integer 0–8: games past 90 minutes across QF/SF/3rd-place/Final. `0` is a valid answer. |
