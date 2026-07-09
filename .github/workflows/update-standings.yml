@@ -38,11 +38,9 @@ jobs:
       - name: Update knockout results (Phase 2 + Phase 3 scoring)
         run: python3 scripts/fetch-knockout-results.py
 
-      - name: Sync picks from the Sheets (Phase 2 + Phase 3, latest-wins)
-        env:
-          PICKS_CSV_URL: ${{ secrets.PICKS_CSV_URL }}
-          PICKS3_CSV_URL: ${{ secrets.PICKS3_CSV_URL }}
-        run: node scripts/fetch-picks.mjs
+      # Picks sync removed: all 20 Phase 2 + Phase 3 picks are in and final. If a
+      # pick ever needs re-syncing, run scripts/fetch-picks.mjs manually with the
+      # PICKS_CSV_URL / PICKS3_CSV_URL env vars.
 
       - name: Run tests
         run: node --test
