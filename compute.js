@@ -129,14 +129,31 @@ export function scorePhase2(player, ko) {
   return pts;
 }
 
+// Phase-3 score from actual knockout results. Uses koResults' Phase-3 fields:
+// sf = teams that won their QF (reached the semis), fin = teams that won their SF
+// (reached the final), third = 3rd-place match winner, champion = final winner.
+// QF pick = 6, SF pick = 8, 3rd place = 7, champion = 10 (max 57). Set-based like
+// scorePhase2; partial results score partially.
+export function scorePhase3(player, ko) {
+  if (!ko) return 0;
+  const sf = new Set(ko.sf || []), fin = new Set(ko.fin || []);
+  const b = player.bracket3 || {};
+  let pts = 0;
+  for (const c of Object.values(b.qf || {})) if (sf.has(c)) pts += 6;
+  for (const c of Object.values(b.sf || {})) if (fin.has(c)) pts += 8;
+  if (ko.third && b.t === ko.third) pts += 7;
+  if (ko.champion && b.f === ko.champion) pts += 10;
+  return pts;
+}
+
 export function buildStandings(players, proj, previousRanks = {}, mode = 'p1', ko = null) {
   const scored = players.map(p => {
     const s = scorePlayer(p, proj);          // {q, g, b, total: q+g+b}
-    const p1 = s.total, p2 = ko ? scorePhase2(p, ko) : (p.p2 || 0);
-    return { ...p, ...s, p1, p2, total: p1 + p2 };
+    const p1 = s.total, p2 = ko ? scorePhase2(p, ko) : (p.p2 || 0), p3 = ko ? scorePhase3(p, ko) : (p.p3 || 0);
+    return { ...p, ...s, p1, p2, p3, total: p1 + p2 + p3 };
   });
-  // mode: 'p1' (default) | 'p2' | 'total'; any other value ranks by p1
-  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'total' ? p.total : p.p1;
+  // mode: 'p1' (default) | 'p2' | 'p3' | 'total'; any other value ranks by p1
+  const valOf = (p) => mode === 'p2' ? p.p2 : mode === 'p3' ? p.p3 : mode === 'total' ? p.total : p.p1;
   scored.sort((a, b) => valOf(b) - valOf(a) || b.total - a.total || b.q - a.q || a.name.localeCompare(b.name));
   return scored.map((p, i) => {
     const rank = i + 1, prev = previousRanks[p.name];
@@ -208,6 +225,24 @@ export function qfTeams(koResults, koMatches, guesses = {}) {
     teams.push(w);
   }
   return { teams, guessed };
+}
+
+// Aggregate stored Phase 3 picks. players: [{name, bracket3:{qf:{k:code}, sf:{s:code}, t, f}}]
+// Returns {qf:{0..3:{code:{count,backers}}}, sf:{0..1:{...}}, t:{code:{...}}, f:{code:{...}}}.
+export function aggregateBrackets3(players) {
+  const out = { qf: { 0: {}, 1: {}, 2: {}, 3: {} }, sf: { 0: {}, 1: {} }, t: {}, f: {} };
+  const add = (bucket, code, name) => {
+    (bucket[code] ||= { count: 0, backers: [] });
+    bucket[code].count++; bucket[code].backers.push(name);
+  };
+  for (const p of players) {
+    const b = p.bracket3; if (!b) continue;
+    for (let k = 0; k < 4; k++) { const c = b.qf && b.qf[k]; if (c) add(out.qf[k], c, p.name); }
+    for (let s = 0; s < 2; s++) { const c = b.sf && b.sf[s]; if (c) add(out.sf[s], c, p.name); }
+    if (b.t) add(out.t, b.t, p.name);
+    if (b.f) add(out.f, b.f, p.name);
+  }
+  return out;
 }
 
 // Aggregate stored player brackets. players: [{name, bracket:{r32:{mid:code}, r16:{rid:code}}}]

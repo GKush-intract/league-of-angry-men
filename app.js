@@ -1,21 +1,21 @@
 // app.js — load data.json, derive via compute.js, render 5 tabs + player overlay
-import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, regionTeams } from './compute.js';
+import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, aggregateBrackets3, regionTeams, qfTeams } from './compute.js';
 import { renderBuild, handleBuildEvent, renderBuildP3, handleBuildEventP3, isLockedP3, bracketModel } from './build.js';
 
-const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},t:'',f:''}, submitState:'idle', lastPayload:'', copied:false }; /* p3 = Phase 3 builder state (QF/SF picks + t = 3rd-place winner + f = champion) */
-let DATA, TABLES, PROJ, STAND, TEAM, POT, M, AGG;
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'p3', bracketSub:'p3', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},t:'',f:''}, submitState:'idle', lastPayload:'', copied:false }; /* p3 = Phase 3 builder state (QF/SF picks + t = 3rd-place winner + f = champion) */
+let DATA, TABLES, PROJ, STAND, TEAM, POT, M, M3, AGG, AGG3;
 
 // Value-for-mode for standings/squad display (NOT the ranking authority — that's
 // the separate valOf inside buildStandings in compute.js, which takes mode as a param).
-const valOf = (p) => state.standMode === 'p2' ? p.p2 : state.standMode === 'total' ? p.total : p.p1;
+const valOf = (p) => state.standMode === 'p2' ? p.p2 : state.standMode === 'p3' ? p.p3 : state.standMode === 'total' ? p.total : p.p1;
 
 const $view = () => document.getElementById('view');
 const $overlay = () => document.getElementById('overlay');
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// Build tab reopened for Phase 3 (QF→Final picks). The Build route dispatches on
-// meta.phase: >= 3 renders the Phase 3 builder, else the (retired) Phase 2 one.
-const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['build','Build','✏️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
+// Build tab removed again — Phase 3 picks closed at the deadline. The renderBuildP3
+// route + build.js stay intact; re-add ['build','Build','✏️'] here if ever needed.
+const NAV = [['standings','Table','🏆'],['bracket','Bracket','🗺️'],['players','Squad','👤'],['matches','Matches','📅'],['rules','Rules','📖']];
 const medal = (r) => r === 1 ? ['#ffce3a', '#1a1400'] : r === 2 ? ['#cfd8d4', '#10201a'] : r === 3 ? ['#d98b46', '#160d04'] : ['#15301f', '#7fd0a0'];
 function tagFor(rank, n) {
   if (rank === 1) return ['👑 TOP OF THE TABLE', '#ffce3a'];
@@ -41,6 +41,11 @@ function recompute() {
   PROJ = projectedQualifiers(TABLES, DATA.bestThirds || null);
   M = bracketModel(TABLES, PROJ, DATA.bracketR32, TEAM);
   AGG = aggregateBrackets(DATA.players, M.r32, M.regions);
+  // Phase 3: the 4 real QF ties (derived from knockout results) + pick aggregates.
+  const mk3 = c => ({ code: c || '', name: (c && TEAM[c]?.name) || c || '', flag: (c && TEAM[c]?.flag) || '' });
+  const qft = qfTeams(DATA.koResults, DATA.koMatches, DATA.meta?.qfGuess || {}).teams;
+  M3 = { qf: [0, 1, 2, 3].map(k => ({ id: k, a: mk3(qft[2 * k]), b: mk3(qft[2 * k + 1]) })) };
+  AGG3 = aggregateBrackets3(DATA.players);
   STAND = buildStandings(DATA.players, PROJ, DATA.previousRanks || {}, state.standMode, DATA.koResults || null);
 }
 
@@ -75,14 +80,16 @@ function statTile(label, val, color) {
 function viewStandings() {
   const n = STAND.length, leader = STAND[0];
   const mode = state.standMode;
-  const denom = { p1: 71, p2: 72, total: 200 }[mode] || 71;
-  const leaderLabel = { p1: 'PHASE 1 LEADER', p2: 'PHASE 2 LEADER', total: 'OVERALL LEADER' }[mode] || 'PHASE 1 LEADER';
+  const denom = { p1: 71, p2: 72, p3: 57, total: 200 }[mode] || 71;
+  const leaderLabel = { p1: 'PHASE 1 LEADER', p2: 'PHASE 2 LEADER', p3: 'PHASE 3 LEADER', total: 'OVERALL LEADER' }[mode] || 'PHASE 1 LEADER';
   const footnote = mode === 'p2'
-    ? 'Phase 2 = R32 + R16 bracket + Q4/Q5. Points are placeholder until results come in.'
-    : mode === 'total'
-      ? 'Combined Phase 1 + Phase 2. Phase 3 (QF→Final) still to come. Max 200.'
-      : 'Phase 1 = R32 qualifiers + group bonus + Q1–Q3. The bar is points out of 71.';
-  const modeDef = [['p1', 'PHASE 1'], ['p2', 'PHASE 2'], ['total', 'TOTAL']];
+    ? 'Phase 2 = R32 + R16 bracket + Q4/Q5. Final — all knockout results in.'
+    : mode === 'p3'
+      ? 'Phase 3 = 4 QF (6 ea) + 2 SF (8 ea) + 3rd place (7) + champion (10). Updates live as results land. Max 57.'
+      : mode === 'total'
+        ? 'Combined Phase 1 + 2 + 3. Max 200.'
+        : 'Phase 1 = R32 qualifiers + group bonus + Q1–Q3. The bar is points out of 71.';
+  const modeDef = [['p1', 'PH 1'], ['p2', 'PH 2'], ['p3', 'PH 3'], ['total', 'TOTAL']];
   const seg = `<div style="display:flex;gap:6px;margin:14px 0 6px;padding:4px;background:#0a1813;border:1px solid #1c3a28;border-radius:12px;">
     ${modeDef.map(([k, label]) => `<button data-mode="${k}" style="flex:1;padding:8px 4px;border:0;border-radius:9px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.06em;background:${mode === k ? '#1a7a43' : 'transparent'};color:${mode === k ? '#eafff0' : '#7fd0a0'};">${label}</button>`).join('')}
   </div>`;
@@ -122,8 +129,8 @@ function viewStandings() {
   </button>` : hasPicks ? `
   <button data-tab="bracket" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:14px 16px;border:1px solid #5a4a1c;border-radius:14px;background:linear-gradient(135deg,rgba(255,206,58,.18),rgba(255,206,58,.06));cursor:pointer;color:#ffce3a;">
     <div style="min-width:0;">
-      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.02em;line-height:1;">🗺️ SEE PHASE 2 PICKS</div>
-      <div style="font-size:11px;color:#e9d9a0;margin-top:4px;">Everyone's knockout brackets — the People's Bracket</div>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.02em;line-height:1;">🗺️ SEE PHASE 3 PICKS</div>
+      <div style="font-size:11px;color:#e9d9a0;margin-top:4px;">Everyone's road to the final — the People's Bracket</div>
     </div>
     <span style="flex:none;font-family:'Barlow Condensed';font-weight:800;font-size:14px;background:#ffce3a;color:#1a1400;padding:8px 14px;border-radius:10px;white-space:nowrap;">VIEW →</span>
   </button>` : '';
@@ -277,14 +284,20 @@ function viewRules() {
 
 // ---------- People's Bracket (aggregate view) ----------
 function viewBracket() {
+  const sub = state.bracketSub || 'p3';
+  const seg = `<div style="display:flex;gap:6px;margin:0 0 12px;padding:4px;background:#0a1813;border:1px solid #1c3a28;border-radius:12px;">
+    ${[['p3', 'PHASE 3'], ['p2', 'PHASE 2']].map(([k, label]) => `<button data-bsub="${k}" style="flex:1;padding:8px 4px;border:0;border-radius:9px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.06em;background:${sub === k ? '#1a7a43' : 'transparent'};color:${sub === k ? '#eafff0' : '#7fd0a0'};">${label}</button>`).join('')}
+  </div>`;
   const header = `<div style="margin:16px 2px 10px;">
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;line-height:1;">THE PEOPLE'S BRACKET</div>
-    <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">Phase 2 · who backed whom. Pinch the zoom, tap a tie for the full list.</div>
+    <div style="font-size:12px;color:#7fd0a0;margin-top:3px;">${sub === 'p3' ? 'Phase 3 · who backed whom from the QFs to the trophy. Tap a card for the full list.' : 'Phase 2 · who backed whom. Pinch the zoom, tap a tie for the full list.'}</div>
   </div>`;
+
+  if (sub === 'p3') return header + seg + renderBracket3();
 
   // Honest empty state — nobody has stored a bracket yet.
   if (DATA.players.every(p => !p.bracket)) {
-    return `${header}<div style="margin:40px 12px;padding:30px 18px;text-align:center;color:#5f7567;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;line-height:1.5;">
+    return `${header}${seg}<div style="margin:40px 12px;padding:30px 18px;text-align:center;color:#5f7567;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;line-height:1.5;">
       No brackets in yet — be the first on the <b style="color:#7fd0a0;">Build</b> tab.
     </div>`;
   }
@@ -363,7 +376,87 @@ function viewBracket() {
     <div style="display:flex;flex-direction:column;gap:0;zoom:${state.zoom};min-width:340px;">${regionsHtml}</div>
   </div>`;
 
-  return `${header}${controlBar}${tree}`;
+  return `${header}${seg}${controlBar}${tree}`;
+}
+
+// Phase 3 People's Bracket: 4 QF ties → 2 SF cards, then 3rd place + champion podiums.
+function renderBracket3() {
+  if (DATA.players.every(p => !p.bracket3)) {
+    return `<div style="margin:40px 12px;padding:30px 18px;text-align:center;color:#5f7567;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;line-height:1.5;">
+      No Phase 3 picks in yet.
+    </div>`;
+  }
+  const pFont = [16, 14, 12.5, 11.5], pFlag = [18, 15, 13, 12], pBarH = [9, 7, 5.5, 4.5];
+
+  // ranked podium rows (shared by SF / 3rd place / champion cards)
+  const podium = (entries) => {
+    const ranked = entries.sort((x, y) => y.c - x.c);
+    const maxC = Math.max(1, ranked[0]?.c || 0);
+    return ranked.map((r, k) => {
+      const ki = Math.min(k, 3);
+      const ti = TEAM[r.code] || { flag: '' };
+      const barColor = k === 0 ? 'linear-gradient(90deg,#1a7a43,#b6ff3a)' : k === 1 ? '#3f9c5e' : '#27412f';
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;opacity:${1 - ki * 0.15};">
+        <span style="font-size:${pFlag[ki]}px;flex:none;width:20px;">${ti.flag || ''}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:${pFont[ki]}px;width:36px;flex:none;color:${k === 0 ? '#fff' : '#cfe0d4'};">${esc(r.code)}</span>
+        <div style="flex:1;min-width:18px;height:${pBarH[ki]}px;border-radius:3px;background:#0a1813;overflow:hidden;"><div style="height:100%;width:${Math.round(r.c / maxC * 100)}%;background:${barColor};"></div></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:${pFont[ki]}px;width:18px;text-align:right;flex:none;color:${k === 0 ? '#b6ff3a' : '#7f9f86'};">${r.c}</span>
+      </div>`;
+    }).join('');
+  };
+
+  const halves = [0, 1].map(s => {
+    const ties = [2 * s, 2 * s + 1].map(k => {
+      const m = M3.qf[k];
+      const cA = AGG3.qf[k][m.a.code]?.count || 0;
+      const cB = AGG3.qf[k][m.b.code]?.count || 0;
+      const lead = cA >= cB ? m.a.code : m.b.code;
+      const rows = [{ t: m.a, c: cA }, { t: m.b, c: cB }].map(({ t, c }) => {
+        const isLead = t.code === lead && c > 0;
+        return `<div style="display:flex;align-items:center;gap:7px;padding:8px 9px;${isLead ? 'background:rgba(182,255,58,.08);' : ''}">
+          <span style="font-size:15px;flex:none;">${t.flag || ''}</span>
+          <span style="flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${isLead ? '#fff' : '#9fb3a6'};">${esc(t.code)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:12px;color:${isLead ? '#b6ff3a' : '#5f7567'};">${c}</span>
+        </div>`;
+      }).join('');
+      return `<button data-open="qf:${k}" style="text-align:left;background:#0a1813;border:1px solid #1c3a28;border-radius:10px;overflow:hidden;cursor:pointer;padding:0;color:#eef5ec;">
+        <div style="font-size:8px;letter-spacing:.1em;color:#5f7567;font-weight:700;padding:6px 9px 0;">QF ${k + 1} · 6 PTS</div>${rows}</button>`;
+    }).join('');
+
+    // 4 possible finalists from this half's two QF ties, ranked by SF backing.
+    const possible = [M3.qf[2 * s].a, M3.qf[2 * s].b, M3.qf[2 * s + 1].a, M3.qf[2 * s + 1].b];
+    const sfRows = podium(possible.map(t => ({ code: t.code, c: AGG3.sf[s][t.code]?.count || 0 })));
+
+    return `<div style="margin-bottom:16px;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;padding:11px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#7fd0a0;margin:0 0 9px 2px;">SEMIFINAL ${s + 1} · QF → SF</div>
+      <div style="display:flex;align-items:stretch;gap:0;">
+        <div style="width:188px;flex:none;display:flex;flex-direction:column;gap:9px;">${ties}</div>
+        <div style="width:26px;flex:none;position:relative;">
+          <div style="position:absolute;left:0;top:25%;width:13px;height:1px;background:#2c5a38;"></div>
+          <div style="position:absolute;left:0;top:75%;width:13px;height:1px;background:#2c5a38;"></div>
+          <div style="position:absolute;left:13px;top:25%;height:50%;width:1px;background:#2c5a38;"></div>
+          <div style="position:absolute;left:13px;top:50%;width:13px;height:1px;background:#2c5a38;"></div>
+        </div>
+        <button data-open="sf:${s}" style="flex:1;min-width:154px;text-align:left;background:linear-gradient(150deg,#13301d,#0a1813);border:1px solid #2c5a38;border-radius:10px;padding:11px 11px 8px;cursor:pointer;color:#eef5ec;">
+          <div style="font-size:8px;letter-spacing:.12em;color:#5f7567;font-weight:700;margin-bottom:9px;">BACKED TO REACH THE FINAL · 8 PTS</div>
+          ${sfRows}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const thirdRows = podium(Object.entries(AGG3.t).map(([code, v]) => ({ code, c: v.count })));
+  const champRows = podium(Object.entries(AGG3.f).map(([code, v]) => ({ code, c: v.count })));
+  const thirdCard = `<button data-open="t:0" style="width:100%;text-align:left;background:#0c1710;border:1px solid #1c3a28;border-radius:14px;padding:11px;cursor:pointer;color:#eef5ec;margin-bottom:16px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#d98b46;margin:0 0 9px 2px;">🥉 3RD PLACE MATCH · 7 PTS</div>
+    ${thirdRows || '<div style="font-size:12px;color:#5f7567;">No picks yet.</div>'}
+  </button>`;
+  const champCard = `<button data-open="f:0" style="width:100%;text-align:left;background:linear-gradient(150deg,#2a230e,#0c1710);border:1px solid #5a4a1c;border-radius:14px;padding:11px;cursor:pointer;color:#eef5ec;margin-bottom:16px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;font-size:11px;color:#ffce3a;margin:0 0 9px 2px;">🏆 BACKED TO LIFT THE TROPHY · 10 PTS</div>
+    ${champRows || '<div style="font-size:12px;color:#5f7567;">No picks yet.</div>'}
+  </button>`;
+
+  return halves + thirdCard + champCard;
 }
 
 // ---------- Matches (Fixtures · Tables · Knockout) ----------
@@ -479,8 +572,40 @@ function renderSupporterOverlay() {
     </div>`;
   };
 
+  const rankedSides = (entries) => entries
+    .sort((a, b) => b.backers.length - a.backers.length)
+    .map(({ code, backers }) => {
+      const ti = TEAM[code] || { flag: '', name: code };
+      return sideHtml(ti.flag, ti.name || code, backers);
+    }).join('');
+
   let kicker, title, sub, sides;
-  if (om.round === 'r32') {
+  if (om.round === 'qf') {
+    const m = M3.qf[om.id];
+    kicker = 'QUARTERFINAL ' + (om.id + 1) + ' · 6 PTS';
+    title = `${m.a.name} vs ${m.b.name}`;
+    sub = 'Who backed each side to reach the Semifinals.';
+    sides = [m.a, m.b].map(t => {
+      const ti = TEAM[t.code] || { flag: t.flag || '', name: t.name };
+      return sideHtml(ti.flag, ti.name || t.code, AGG3.qf[om.id][t.code]?.backers || []);
+    }).join('');
+  } else if (om.round === 'sf') {
+    const possible = [M3.qf[2 * om.id].a, M3.qf[2 * om.id].b, M3.qf[2 * om.id + 1].a, M3.qf[2 * om.id + 1].b];
+    kicker = 'SEMIFINAL ' + (om.id + 1) + ' · 8 PTS';
+    title = 'Backed to reach the Final';
+    sub = 'Across both quarterfinals on this side of the draw.';
+    sides = rankedSides(possible.map(t => ({ code: t.code, backers: AGG3.sf[om.id][t.code]?.backers || [] })));
+  } else if (om.round === 't') {
+    kicker = '3RD PLACE MATCH · 7 PTS';
+    title = 'Backed to win the bronze final';
+    sub = 'Each player\'s pick from their own two semifinal losers.';
+    sides = rankedSides(Object.entries(AGG3.t).map(([code, v]) => ({ code, backers: v.backers })));
+  } else if (om.round === 'f') {
+    kicker = 'THE FINAL · 10 PTS';
+    title = 'Backed to lift the trophy';
+    sub = 'Every player\'s champion.';
+    sides = rankedSides(Object.entries(AGG3.f).map(([code, v]) => ({ code, backers: v.backers })));
+  } else if (om.round === 'r32') {
     const m = M.r32[om.id];
     kicker = 'ROUND OF 32 · TIE ' + (om.id + 1);
     title = `${m.a.name} vs ${m.b.name}`;
@@ -517,6 +642,40 @@ function renderSupporterOverlay() {
         ${sides}
       </div>
     </div>`;
+}
+
+// Player card: the player's Phase 3 picks, colored against live knockout results.
+// hit = pick advanced (lime), miss = pick eliminated at that stage (red), else grey.
+function p3Section(p) {
+  const b3 = p.bracket3;
+  if (!b3) return `<div style="background:#0c1710;border:1px dashed #1c3a28;border-radius:11px;padding:18px;text-align:center;color:#5f7567;font-size:12px;">No Phase 3 picks yet</div>`;
+  const ko = DATA.koResults || {};
+  const sfSet = new Set(ko.sf || []), finSet = new Set(ko.fin || []);
+  const chip = (code, status, pts) => {
+    const t = TEAM[code] || { flag: '', name: code };
+    const color = status === 'hit' ? '#b6ff3a' : status === 'miss' ? '#ff7a6a' : '#9fb3a6';
+    const bg = status === 'hit' ? 'rgba(182,255,58,.1)' : status === 'miss' ? 'rgba(255,122,106,.1)' : 'rgba(255,255,255,.04)';
+    const tag = status === 'hit' ? ` <b style="font-family:'JetBrains Mono';font-size:10px;">+${pts}</b>` : '';
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;font-size:12px;font-weight:600;background:${bg};color:${color};border:1px solid ${color};"><span style="font-size:14px;">${t.flag || ''}</span>${esc(code || '—')}${tag}</span>`;
+  };
+  const rowOf = (lbl, chips) => `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #122a1c;">
+    <span style="width:76px;flex:none;font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#7fd0a0;">${lbl}</span>
+    <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap;">${chips}</div></div>`;
+  const qfChips = [0, 1, 2, 3].map(k => {
+    const pick = b3.qf?.[k]; if (!pick) return chip('—', 'tbd');
+    const tie = M3.qf[k];
+    const decided = sfSet.has(tie.a.code) || sfSet.has(tie.b.code);
+    return chip(pick, sfSet.has(pick) ? 'hit' : decided ? 'miss' : 'tbd', 6);
+  }).join('');
+  const sfChips = [0, 1].map(s => {
+    const pick = b3.sf?.[s]; if (!pick) return chip('—', 'tbd');
+    const half = [M3.qf[2 * s].a.code, M3.qf[2 * s].b.code, M3.qf[2 * s + 1].a.code, M3.qf[2 * s + 1].b.code];
+    const decided = half.some(c => finSet.has(c));
+    return chip(pick, finSet.has(pick) ? 'hit' : decided ? 'miss' : 'tbd', 8);
+  }).join('');
+  const tChip = b3.t ? chip(b3.t, ko.third ? (ko.third === b3.t ? 'hit' : 'miss') : 'tbd', 7) : chip('—', 'tbd');
+  const fChip = b3.f ? chip(b3.f, ko.champion ? (ko.champion === b3.f ? 'hit' : 'miss') : 'tbd', 10) : chip('—', 'tbd');
+  return rowOf('QF WINNERS', qfChips) + rowOf('SF WINNERS', sfChips) + rowOf('🥉 3RD PLACE', tChip) + rowOf('🏆 CHAMPION', fChip);
 }
 
 // ---------- Player detail overlay ----------
@@ -587,12 +746,15 @@ function renderOverlay() {
         <div style="display:flex;align-items:center;gap:13px;">
           <div style="width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:12px;font-family:'JetBrains Mono';font-weight:800;font-size:20px;background:${rb};color:${rf};">${p.rank}</div>
           <div style="flex:1;min-width:0;"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:28px;line-height:1;">${esc(p.name)}</div><div style="font-size:12px;color:#5f7567;">${esc(p.nick || '')}&nbsp;</div></div>
-          <div style="text-align:right;flex:none;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:30px;color:#b6ff3a;line-height:1;">${p.p1}</div><div style="font-size:10px;letter-spacing:.12em;color:#5f7567;font-weight:700;">POINTS</div></div>
+          <div style="text-align:right;flex:none;"><div style="font-family:'JetBrains Mono';font-weight:800;font-size:30px;color:#b6ff3a;line-height:1;">${p.total}</div><div style="font-size:10px;letter-spacing:.12em;color:#5f7567;font-weight:700;">TOTAL PTS</div></div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:16px;">${ptile('PHASE 1', p.p1)}${ptile('PHASE 2', p.p2 || 0, { border: '#2c5a38', lblColor: '#ffce3a' })}${ptile('PHASE 3', '🔒', { valColor: '#5f7567' })}</div>
+        <div style="display:flex;gap:8px;margin-top:16px;">${ptile('PHASE 1', p.p1)}${ptile('PHASE 2', p.p2 || 0, { border: '#2c5a38', lblColor: '#ffce3a' })}${ptile('PHASE 3', p.p3 || 0, { border: '#5a4a1c', lblColor: '#d98b46' })}</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:20px 0 4px;letter-spacing:.03em;">PHASE 1 · R32 PICKS</div>
         <div style="font-size:11px;color:#5f7567;margin-bottom:8px;">Teams backed to reach the Round of 32. Green = on track, red = trailing, grey = not started. <b style="color:#ffce3a;">Gold +2</b> = every qualifier from that group nailed (group bonus).</div>
         ${picksRows}
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 4px;letter-spacing:.03em;">PHASE 3 · ROAD TO THE FINAL</div>
+        <div style="font-size:11px;color:#5f7567;margin-bottom:10px;">QF winners (6 ea) → SF winners (8 ea) → 3rd place (7) → champion (10). Green = nailed it, red = eliminated, grey = still alive.</div>
+        ${p3Section(p)}
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;margin:22px 0 4px;letter-spacing:.03em;">PHASE 2 · BRACKET</div>
         <div style="font-size:11px;color:#5f7567;margin-bottom:10px;">R32 picks (left) → the team they sent to the QF (right). The advancing finalist is highlighted lime.</div>
         ${miniBracket}
@@ -616,6 +778,8 @@ document.addEventListener('click', (e) => {
   if (seg) { state.standMode = seg.dataset.mode; recompute(); render(); return; }
   const sub = e.target.closest('[data-sub]');
   if (sub) { state.matchSub = sub.dataset.sub; render(); return; }
+  const bsub = e.target.closest('[data-bsub]');
+  if (bsub) { state.bracketSub = bsub.dataset.bsub; render(); return; }
   const z = e.target.closest('[data-zoom]');
   if (z) { state.zoom = Math.round((Math.min(1.4, Math.max(0.6, state.zoom + (z.dataset.zoom === 'in' ? 0.2 : -0.2)))) * 10) / 10; render(); return; }
   const op = e.target.closest('[data-open]');

@@ -72,12 +72,15 @@ export function validate(data) {
     if (typeof ko !== 'object' || ko === null || Array.isArray(ko)) {
       errors.push('koResults must be an object');
     } else {
-      for (const round of ['r16', 'qf']) {
+      for (const round of ['r16', 'qf', 'sf', 'fin']) {
         if (ko[round] === undefined) continue;
         if (!Array.isArray(ko[round])) { errors.push(`koResults.${round} must be an array`); continue; }
         for (const c of ko[round])
           if (typeof c !== 'string' || !all.has(c)) errors.push(`koResults.${round}: ${c} is not a valid team code`);
       }
+      for (const f of ['third', 'champion'])
+        if (ko[f] !== undefined && (typeof ko[f] !== 'string' || !all.has(ko[f])))
+          errors.push(`koResults.${f}: ${ko[f]} is not a valid team code`);
       // q4/q5: a single code or an array of codes (all teams tied on the top count)
       for (const f of ['q4', 'q5']) {
         if (ko[f] === undefined) continue;
@@ -132,6 +135,28 @@ export function validate(data) {
     for (const f of ['q4', 'q5']) {
       if (p[f] !== undefined && (typeof p[f] !== 'string' || !CODE.test(p[f])))
         errors.push(`${p.name}: ${f} must be a 3-letter code`);
+    }
+    // Phase-3 picks: bracket3 = { qf:{0..3:code}, sf:{0..1:code}, t:code, f:code }
+    if (p.bracket3 !== undefined) {
+      const b3 = p.bracket3;
+      if (typeof b3 !== 'object' || b3 === null || Array.isArray(b3)) {
+        errors.push(`${p.name}: bracket3 must be an object`);
+      } else {
+        for (const round of ['qf', 'sf']) {
+          const r = b3[round];
+          if (r === undefined) continue;
+          if (typeof r !== 'object' || r === null || Array.isArray(r)) {
+            errors.push(`${p.name}: bracket3.${round} must be an object`);
+            continue;
+          }
+          for (const [k, v] of Object.entries(r))
+            if (typeof v !== 'string' || !CODE.test(v))
+              errors.push(`${p.name}: bracket3.${round}[${k}] must be a 3-letter code`);
+        }
+        for (const f of ['t', 'f'])
+          if (b3[f] !== undefined && (typeof b3[f] !== 'string' || !CODE.test(b3[f])))
+            errors.push(`${p.name}: bracket3.${f} must be a 3-letter code`);
+      }
     }
     if (p.p2 !== undefined && (typeof p.p2 !== 'number' || Number.isNaN(p.p2)))
       errors.push(`${p.name}: p2 must be a number`);

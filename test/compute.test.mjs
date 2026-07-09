@@ -4,7 +4,7 @@ import {
   computeGroupTable, computeAllTables, resolveTables, projectedQualifiers,
   scorePlayer, buildStandings, bonusGroups, GROUP_LETTERS,
   seedTeams, r32Pairings, regions, seedIndex,
-  aggregateBrackets, regionTeams, scorePhase2, qfTeams,
+  aggregateBrackets, aggregateBrackets3, regionTeams, scorePhase2, scorePhase3, qfTeams,
 } from '../compute.js';
 
 const teamsA = [["MEX","Mexico","🇲🇽"],["KOR","South Korea","🇰🇷"],["CZE","Czechia","🇨🇿"],["RSA","South Africa","🇿🇦"]];
@@ -313,4 +313,43 @@ test('scorePhase2 honors q4/q5 ties (array of leaders) and single-code form', ()
   assert.equal(scorePhase2({ q4: 'FRA', q5: 'CAN' }, ko), 0);
   // legacy single-string form still works
   assert.equal(scorePhase2({ q4: 'BEL', q5: 'USA' }, { r16: [], qf: [], q4: 'BEL', q5: 'USA' }), 8);
+});
+
+// ---------- Phase 3 scoring + aggregation ----------
+test('scorePhase3 scores QF/SF/third/champion from koResults P3 fields', () => {
+  const ko = { sf: ['FRA', 'BEL', 'ENG', 'ARG'], fin: ['FRA', 'ARG'], third: 'BEL', champion: 'ARG' };
+  const player = { bracket3: { qf: { 0: 'FRA', 1: 'BEL', 2: 'ENG', 3: 'SUI' }, sf: { 0: 'FRA', 1: 'ARG' }, t: 'BEL', f: 'ARG' } };
+  // 3 QF hits (18) + 2 SF hits (16) + third (7) + champion (10) = 51
+  assert.equal(scorePhase3(player, ko), 51);
+});
+
+test('scorePhase3 scores partially and handles missing picks/results', () => {
+  const player = { bracket3: { qf: { 0: 'FRA' }, sf: {}, t: 'BEL', f: 'ARG' } };
+  assert.equal(scorePhase3(player, { sf: ['FRA'] }), 6);  // only QF results in
+  assert.equal(scorePhase3(player, {}), 0);
+  assert.equal(scorePhase3({}, { sf: ['FRA'], champion: 'ARG' }), 0);
+  assert.equal(scorePhase3(player, null), 0);
+});
+
+test('buildStandings totals include p3', () => {
+  const players = [{ name: 'A', picks: {}, b: 0, bracket3: { qf: { 0: 'FRA' }, sf: {}, t: '', f: '' } }];
+  const proj = { qualified: new Set(), top2: {}, started: {}, groupQ: {}, best8: new Set() };
+  const st = buildStandings(players, proj, {}, 'p3', { r16: [], qf: [], sf: ['FRA'] });
+  assert.equal(st[0].p3, 6);
+  assert.equal(st[0].total, st[0].p1 + st[0].p2 + 6);
+});
+
+test('aggregateBrackets3 counts backers per stage', () => {
+  const players = [
+    { name: 'A', bracket3: { qf: { 0: 'FRA' }, sf: { 0: 'FRA' }, t: 'ESP', f: 'FRA' } },
+    { name: 'B', bracket3: { qf: { 0: 'FRA', 1: 'ESP' }, sf: { 0: 'ESP' }, t: 'ESP', f: 'ARG' } },
+    { name: 'C' },
+  ];
+  const agg = aggregateBrackets3(players);
+  assert.equal(agg.qf[0].FRA.count, 2);
+  assert.deepEqual(agg.qf[0].FRA.backers, ['A', 'B']);
+  assert.equal(agg.sf[0].ESP.count, 1);
+  assert.equal(agg.t.ESP.count, 2);
+  assert.equal(agg.f.FRA.count, 1);
+  assert.equal(agg.f.ARG.count, 1);
 });

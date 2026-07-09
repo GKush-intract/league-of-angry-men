@@ -35,8 +35,14 @@ jobs:
       - name: Snapshot ranks (movement baseline)
         run: node scripts/snapshot-ranks.mjs
 
-      - name: Update knockout results (Phase 2 scoring)
+      - name: Update knockout results (Phase 2 + Phase 3 scoring)
         run: python3 scripts/fetch-knockout-results.py
+
+      - name: Sync picks from the Sheets (Phase 2 + Phase 3, latest-wins)
+        env:
+          PICKS_CSV_URL: ${{ secrets.PICKS_CSV_URL }}
+          PICKS3_CSV_URL: ${{ secrets.PICKS3_CSV_URL }}
+        run: node scripts/fetch-picks.mjs
 
       - name: Run tests
         run: node --test

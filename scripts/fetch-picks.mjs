@@ -57,13 +57,40 @@ export function parsePicksCsv(text, validCodes) {
   return latest;
 }
 
+// Phase 3 sheet rows: submittedAt,player,nick,qf_1..4,sf_1..2,tp,f.
+// Stored back as bracket3 = { qf:{0..3}, sf:{0..1}, t, f } (zero-based keys).
+export function parsePicks3Csv(text, validCodes) {
+  const rows = parseCsv(text);
+  const latest = Object.create(null);
+  for (const r of rows) {
+    const name = r.player; if (!name) continue;
+    const parsed = Date.parse(r.submittedAt);
+    const tsNum = Number.isNaN(parsed) ? -Infinity : parsed;
+    if (latest[name] && tsNum <= latest[name]._tsNum) continue;
+    const qf = {}, sf = {};
+    for (let i = 0; i < 4; i++) { const c = r[`qf_${i+1}`]; if (c && validCodes.has(c)) qf[i] = c; }
+    for (let j = 0; j < 2; j++) { const c = r[`sf_${j+1}`]; if (c && validCodes.has(c)) sf[j] = c; }
+    const rec = { bracket3: { qf, sf }, _tsNum: tsNum };
+    if (validCodes.has(r.tp)) rec.bracket3.t = r.tp;
+    if (validCodes.has(r.f)) rec.bracket3.f = r.f;
+    latest[name] = rec;
+  }
+  for (const k of Object.keys(latest)) delete latest[k]._tsNum;
+  return latest;
+}
+
+async function fetchText(url) {
+  const res = await fetch(url);
+  return res.text();
+}
+
 async function main() {
-  const url = process.env.PICKS_CSV_URL;
-  if (!url) { console.warn('no PICKS_CSV_URL, skipping'); process.exit(0); }
-  let text;
+  const url = process.env.PICKS_CSV_URL, url3 = process.env.PICKS3_CSV_URL;
+  if (!url && !url3) { console.warn('no PICKS_CSV_URL / PICKS3_CSV_URL, skipping'); process.exit(0); }
+  let text = null, text3 = null;
   try {
-    const res = await fetch(url);                          // ONLY network failure is non-fatal
-    text = await res.text();
+    if (url) text = await fetchText(url);                  // ONLY network failure is non-fatal
+    if (url3) text3 = await fetchText(url3);
   } catch (e) {
     console.warn('fetch-picks failed (non-fatal):', e.message);
     process.exit(0);
@@ -72,13 +99,22 @@ async function main() {
   const data = JSON.parse(readFileSync('data.json', 'utf8'));
   const validCodes = new Set();
   for (const L of Object.keys(data.groups)) for (const t of data.groups[L]) validCodes.add(t[0]);
-  const picks = parsePicksCsv(text, validCodes);
-  let n = 0;
-  for (const p of data.players) {
-    const got = picks[p.name]; if (!got) continue;
-    p.bracket = got.bracket; if (got.q4) p.q4 = got.q4; if (got.q5) p.q5 = got.q5; n++;
+  let n = 0, n3 = 0;
+  if (text != null) {
+    const picks = parsePicksCsv(text, validCodes);
+    for (const p of data.players) {
+      const got = picks[p.name]; if (!got) continue;
+      p.bracket = got.bracket; if (got.q4) p.q4 = got.q4; if (got.q5) p.q5 = got.q5; n++;
+    }
+  }
+  if (text3 != null) {
+    const picks3 = parsePicks3Csv(text3, validCodes);
+    for (const p of data.players) {
+      const got = picks3[p.name]; if (!got) continue;
+      p.bracket3 = got.bracket3; n3++;
+    }
   }
   writeFileSync('data.json', JSON.stringify(data, null, 2) + '\n');
-  console.log(`merged brackets for ${n} player(s)`);
+  console.log(`merged brackets for ${n} player(s), phase-3 picks for ${n3} player(s)`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

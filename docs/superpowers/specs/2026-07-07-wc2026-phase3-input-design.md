@@ -80,3 +80,13 @@ the player's own picks (the implied SF losers); picks total **8** (4 QF + 2 SF +
 (same `/exec` URL via Manage deployments → New version) BEFORE anyone submits,
 or third-place picks are silently dropped and the sheet header locks in the old
 q6 layout.
+
+## Effort 2 shipped 2026-07-10 — sync, scoring, display
+
+Picks closed (19/20 in; Zac pending, added later via the sheet). Shipped: `parsePicks3Csv`
+merge into `players[].bracket3` (PICKS3_CSV_URL re-wired into the workflow alongside
+PICKS_CSV_URL), scraper emits `koResults.sf/fin/third/champion`, `scorePhase3`
+(6/8/7/10, set-based, partial), standings PH 1|2|3|TOTAL segments (PH 3 default),
+Bracket tab PHASE 3 (default) / PHASE 2 sub-tabs with QF/SF/3rd/champion aggregates +
+supporter overlays, player-card Phase 3 road with hit/miss/alive coloring, Build tab
+removed from the nav again.

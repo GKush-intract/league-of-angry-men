@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyR32, applyR16, pickCounts, buildPayload, bracketModel, p3Model, applyQF, applySF, applyT, applyF, thirdCandidates, p3PickCounts, buildPayloadP3, isLockedP3 } from '../build.js';
-import { parsePicksCsv } from '../scripts/fetch-picks.mjs';
+import { parsePicksCsv, parsePicks3Csv } from '../scripts/fetch-picks.mjs';
 
 test('applyR16 then invalidating R32 clears the R16 pick', () => {
   let picks = { r32: {}, r16: {} };
@@ -202,4 +202,24 @@ test('isLockedP3 respects meta.phase3Deadline', () => {
   assert.equal(isLockedP3({ meta: { phase3Deadline: '2000-01-01T00:00:00Z' } }), true);
   assert.equal(isLockedP3({ meta: { phase3Deadline: '2099-01-01T00:00:00Z' } }), false);
   assert.equal(isLockedP3({ meta: {} }), false);
+});
+
+// ---------- Phase 3 CSV sync ----------
+test('parsePicks3Csv maps qf/sf/tp/f columns to bracket3, latest per player', () => {
+  const csv = [
+    'submittedAt,player,nick,qf_1,qf_2,qf_3,qf_4,sf_1,sf_2,tp,f',
+    '2026-07-09T06:00:00Z,Artet,,FRA,ESP,NOR,ARG,FRA,ARG,ESP,ARG',
+    '2026-07-09T08:00:00Z,Artet,,FRA,BEL,NOR,ARG,FRA,NOR,BEL,FRA',
+    '2026-07-09T07:00:00Z,Ghost,,FRA,ESP,ENG,ARG,FRA,ENG,ESP,FRA',
+  ].join('\n');
+  const valid = new Set(['FRA', 'BEL', 'NOR', 'ARG', 'ESP', 'ENG']);
+  const out = parsePicks3Csv(csv, valid);
+  assert.deepEqual(out.Artet.bracket3, { qf: { 0: 'FRA', 1: 'BEL', 2: 'NOR', 3: 'ARG' }, sf: { 0: 'FRA', 1: 'NOR' }, t: 'BEL', f: 'FRA' });
+  assert.equal(out.Ghost.bracket3.f, 'FRA');
+});
+
+test('parsePicks3Csv drops invalid codes without inventing keys', () => {
+  const csv = 'submittedAt,player,nick,qf_1,qf_2,qf_3,qf_4,sf_1,sf_2,tp,f\n2026-07-09T06:00:00Z,Artet,,XXX,ESP,,,FRA,,,YYY';
+  const out = parsePicks3Csv(csv, new Set(['FRA', 'ESP']));
+  assert.deepEqual(out.Artet.bracket3, { qf: { 1: 'ESP' }, sf: { 0: 'FRA' } });
 });

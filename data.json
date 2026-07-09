@@ -275,17 +275,17 @@
   "results": {},
   "previousRanks": {
     "Garrick Shanpru": 1,
-    "Shivam Datta": 2,
-    "Omargh Lanong": 3,
-    "Kushagra": 4,
-    "Mohit Ghune": 5,
-    "Banmanlang": 6,
-    "Saket": 7,
-    "Vaibhav Gupta": 8,
-    "Banshan": 9,
-    "Mohit Agarwal": 10,
-    "Manav": 11,
-    "Prasoon Chaturvedi": 12,
+    "Mohit Ghune": 2,
+    "Banmanlang": 3,
+    "Shivam Datta": 4,
+    "Prasoon Chaturvedi": 5,
+    "Omargh Lanong": 6,
+    "Kushagra": 7,
+    "Saket": 8,
+    "Vaibhav Gupta": 9,
+    "Banshan": 10,
+    "Mohit Agarwal": 11,
+    "Manav": 12,
     "Krishna": 13,
     "Sangam": 14,
     "Zac": 15,
@@ -392,7 +392,21 @@
         }
       },
       "q4": "GER",
-      "q5": "CAN"
+      "q5": "CAN",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "BEL",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "NOR"
+        },
+        "t": "BEL",
+        "f": "FRA"
+      }
     },
     {
       "name": "Banmanlang",
@@ -490,7 +504,21 @@
         }
       },
       "q4": "ENG",
-      "q5": "PAR"
+      "q5": "PAR",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ARG",
+        "f": "FRA"
+      }
     },
     {
       "name": "Banshan",
@@ -588,7 +616,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "CPV"
+      "q5": "CPV",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "BEL",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ARG"
+        },
+        "t": "NOR",
+        "f": "ARG"
+      }
     },
     {
       "name": "Dale shylla",
@@ -686,7 +728,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "CPV"
+      "q5": "CPV",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Garrick Shanpru",
@@ -784,7 +840,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "CPV"
+      "q5": "CPV",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ARG"
+        },
+        "t": "ESP",
+        "f": "ARG"
+      }
     },
     {
       "name": "Krishna",
@@ -882,7 +952,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "COD"
+      "q5": "COD",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "ESP",
+          "1": "NOR"
+        },
+        "t": "FRA",
+        "f": "ESP"
+      }
     },
     {
       "name": "Kushagra",
@@ -980,7 +1064,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "NOR"
+      "q5": "NOR",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Luke Shanpru",
@@ -1078,7 +1176,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "NED"
+      "q5": "NED",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "NOR"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Manav",
@@ -1176,7 +1288,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "COD"
+      "q5": "COD",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Mohit Agarwal",
@@ -1274,7 +1400,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "COD"
+      "q5": "COD",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ARG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Mohit Ghune",
@@ -1372,7 +1512,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "EGY"
+      "q5": "EGY",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ARG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Omargh Lanong",
@@ -1470,7 +1624,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "ALG"
+      "q5": "ALG",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "BEL",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ARG",
+        "f": "ENG"
+      }
     },
     {
       "name": "Prasoon Chaturvedi",
@@ -1568,7 +1736,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "EGY"
+      "q5": "EGY",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ARG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Pynk",
@@ -1666,7 +1848,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "ALG"
+      "q5": "ALG",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Saket",
@@ -1764,7 +1960,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "CIV"
+      "q5": "CIV",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ARG",
+        "f": "FRA"
+      }
     },
     {
       "name": "Sangam",
@@ -1862,7 +2072,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "CAN"
+      "q5": "CAN",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "ESP",
+          "1": "ENG"
+        },
+        "t": "FRA",
+        "f": "ESP"
+      }
     },
     {
       "name": "Sanjog",
@@ -1960,7 +2184,21 @@
         }
       },
       "q4": "ARG",
-      "q5": "CPV"
+      "q5": "CPV",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ESP",
+        "f": "FRA"
+      }
     },
     {
       "name": "Shivam Datta",
@@ -2058,7 +2296,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "BEL"
+      "q5": "BEL",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "ESP",
+          "2": "ENG",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ENG"
+        },
+        "t": "ARG",
+        "f": "ENG"
+      }
     },
     {
       "name": "Vaibhav Gupta",
@@ -2156,7 +2408,21 @@
         }
       },
       "q4": "FRA",
-      "q5": "NED"
+      "q5": "NED",
+      "bracket3": {
+        "qf": {
+          "0": "FRA",
+          "1": "BEL",
+          "2": "NOR",
+          "3": "ARG"
+        },
+        "sf": {
+          "0": "FRA",
+          "1": "ARG"
+        },
+        "t": "BEL",
+        "f": "FRA"
+      }
     },
     {
       "name": "Zac",
@@ -3566,6 +3832,8 @@
       "ARG",
       "SUI"
     ],
+    "sf": [],
+    "fin": [],
     "q4": [
       "BEL"
     ],

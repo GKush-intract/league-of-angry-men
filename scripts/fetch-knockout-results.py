@@ -119,6 +119,25 @@ def main():
                 qf.append(w)
     ko = {'r16': r16, 'qf': qf}
 
+    # Phase 3 progression. QF tie k = qf[2k] v qf[2k+1] (region order) — only
+    # derivable once all 8 QF teams are known (the qf list is compacted otherwise).
+    # sf = teams that won their QF (reached the semis); fin = teams that won their
+    # SF (reached the final); third = 3rd-place match winner; champion = final winner.
+    if len(qf) == 8:
+        sf_slots = [winner(qf[2 * k], qf[2 * k + 1]) for k in range(4)]
+        ko['sf'] = [t for t in sf_slots if t]
+        fin_slots, third_cands = [None, None], []
+        for j in range(2):
+            a, b = sf_slots[2 * j], sf_slots[2 * j + 1]
+            if a and b and (w := winner(a, b)):
+                fin_slots[j] = w
+                third_cands.append(a if w == b else b)
+        ko['fin'] = [t for t in fin_slots if t]
+        if len(third_cands) == 2 and (w := winner(*third_cands)):
+            ko['third'] = w
+        if all(fin_slots) and (w := winner(*fin_slots)):
+            ko['champion'] = w
+
     # Q4/Q5 ("most goals scored/conceded across R32+R16") — only once all 24 are complete.
     r16_matches = [match(wa, wb) for wa, wb in r16_pairs]
     if len(r16) == 16 and len(r16_pairs) == 8 and all(r16_matches) and len(qf) == 8:
@@ -140,6 +159,7 @@ def main():
     played = sum(1 for m in matches if m.get('done'))
     print(f"koMatches: {len(matches)} ({played} played) | koResults: {len(r16)} R32 winners, "
           f"{len(qf)} R16 winners, q4={ko.get('q4')}, q5={ko.get('q5')}")
+    print(f"  P3: sf={ko.get('sf')}, fin={ko.get('fin')}, third={ko.get('third')}, champion={ko.get('champion')}")
     print(f"  R32 winners (reached R16): {r16}")
 
 if __name__ == '__main__':
