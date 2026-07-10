@@ -3846,7 +3846,9 @@
       "ARG",
       "SUI"
     ],
-    "sf": [],
+    "sf": [
+      "FRA"
+    ],
     "fin": [],
     "q4": [
       "BEL"
@@ -4119,7 +4121,10 @@
       "a": "MAR",
       "date": "2026-07-10",
       "time": "1:30 AM",
-      "done": false
+      "hs": 2,
+      "as": 0,
+      "done": true,
+      "w": "FRA"
     },
     {
       "h": "ESP",
