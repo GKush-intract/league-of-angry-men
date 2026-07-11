@@ -3847,7 +3847,8 @@
       "SUI"
     ],
     "sf": [
-      "FRA"
+      "FRA",
+      "ESP"
     ],
     "fin": [],
     "q4": [
@@ -4131,7 +4132,10 @@
       "a": "BEL",
       "date": "2026-07-11",
       "time": "12:30 AM",
-      "done": false
+      "hs": 2,
+      "as": 1,
+      "done": true,
+      "w": "ESP"
     },
     {
       "h": "NOR",
@@ -4145,6 +4149,13 @@
       "a": "SUI",
       "date": "2026-07-12",
       "time": "6:30 AM",
+      "done": false
+    },
+    {
+      "h": "FRA",
+      "a": "ESP",
+      "date": "2026-07-15",
+      "time": "12:30 AM",
       "done": false
     }
   ]
