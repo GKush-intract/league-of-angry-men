@@ -279,19 +279,19 @@
     "Banmanlang": 3,
     "Shivam Datta": 4,
     "Prasoon Chaturvedi": 5,
-    "Omargh Lanong": 6,
-    "Kushagra": 7,
-    "Saket": 8,
-    "Vaibhav Gupta": 9,
-    "Banshan": 10,
-    "Mohit Agarwal": 11,
-    "Manav": 12,
-    "Krishna": 13,
-    "Sangam": 14,
-    "Zac": 15,
-    "Dale shylla": 16,
-    "Sanjog": 17,
-    "Luke Shanpru": 18,
+    "Kushagra": 6,
+    "Saket": 7,
+    "Mohit Agarwal": 8,
+    "Manav": 9,
+    "Krishna": 10,
+    "Sangam": 11,
+    "Dale shylla": 12,
+    "Omargh Lanong": 13,
+    "Sanjog": 14,
+    "Vaibhav Gupta": 15,
+    "Banshan": 16,
+    "Luke Shanpru": 17,
+    "Zac": 18,
     "Pynk": 19,
     "Artet": 20
   },
@@ -3848,7 +3848,9 @@
     ],
     "sf": [
       "FRA",
-      "ESP"
+      "ESP",
+      "ENG",
+      "ARG"
     ],
     "fin": [],
     "q4": [
@@ -4142,19 +4144,32 @@
       "a": "ENG",
       "date": "2026-07-12",
       "time": "2:30 AM",
-      "done": false
+      "hs": 1,
+      "as": 2,
+      "done": true,
+      "w": "ENG"
     },
     {
       "h": "ARG",
       "a": "SUI",
       "date": "2026-07-12",
       "time": "6:30 AM",
-      "done": false
+      "hs": 3,
+      "as": 1,
+      "done": true,
+      "w": "ARG"
     },
     {
       "h": "FRA",
       "a": "ESP",
       "date": "2026-07-15",
+      "time": "12:30 AM",
+      "done": false
+    },
+    {
+      "h": "ENG",
+      "a": "ARG",
+      "date": "2026-07-16",
       "time": "12:30 AM",
       "done": false
     }
