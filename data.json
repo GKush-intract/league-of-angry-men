@@ -274,25 +274,25 @@
   },
   "results": {},
   "previousRanks": {
-    "Garrick Shanpru": 1,
-    "Mohit Ghune": 2,
-    "Banmanlang": 3,
-    "Shivam Datta": 4,
-    "Prasoon Chaturvedi": 5,
-    "Kushagra": 6,
-    "Saket": 7,
-    "Mohit Agarwal": 8,
-    "Manav": 9,
-    "Krishna": 10,
-    "Sangam": 11,
-    "Dale shylla": 12,
-    "Omargh Lanong": 13,
-    "Sanjog": 14,
-    "Vaibhav Gupta": 15,
-    "Banshan": 16,
-    "Luke Shanpru": 17,
-    "Zac": 18,
-    "Pynk": 19,
+    "Mohit Ghune": 1,
+    "Banmanlang": 2,
+    "Shivam Datta": 3,
+    "Kushagra": 4,
+    "Garrick Shanpru": 5,
+    "Saket": 6,
+    "Manav": 7,
+    "Sangam": 8,
+    "Prasoon Chaturvedi": 9,
+    "Dale shylla": 10,
+    "Omargh Lanong": 11,
+    "Sanjog": 12,
+    "Mohit Agarwal": 13,
+    "Krishna": 14,
+    "Zac": 15,
+    "Pynk": 16,
+    "Vaibhav Gupta": 17,
+    "Banshan": 18,
+    "Luke Shanpru": 19,
     "Artet": 20
   },
   "players": [
@@ -3852,7 +3852,10 @@
       "ENG",
       "ARG"
     ],
-    "fin": [],
+    "fin": [
+      "ESP",
+      "ARG"
+    ],
     "q4": [
       "BEL"
     ],
@@ -4164,12 +4167,32 @@
       "a": "ESP",
       "date": "2026-07-15",
       "time": "12:30 AM",
-      "done": false
+      "hs": 0,
+      "as": 2,
+      "done": true,
+      "w": "ESP"
     },
     {
       "h": "ENG",
       "a": "ARG",
       "date": "2026-07-16",
+      "time": "12:30 AM",
+      "hs": 1,
+      "as": 2,
+      "done": true,
+      "w": "ARG"
+    },
+    {
+      "h": "FRA",
+      "a": "ENG",
+      "date": "2026-07-19",
+      "time": "2:30 AM",
+      "done": false
+    },
+    {
+      "h": "ESP",
+      "a": "ARG",
+      "date": "2026-07-20",
       "time": "12:30 AM",
       "done": false
     }
