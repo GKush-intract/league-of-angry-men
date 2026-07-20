@@ -2,7 +2,7 @@
 import { resolveTables, projectedQualifiers, buildStandings, bonusGroups, GROUP_LETTERS, aggregateBrackets, aggregateBrackets3, regionTeams, qfTeams } from './compute.js';
 import { renderBuild, handleBuildEvent, renderBuildP3, handleBuildEventP3, isLockedP3, bracketModel } from './build.js';
 
-const state = { tab:'standings', selected:null, openMatch:null, standMode:'p3', bracketSub:'p3', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},t:'',f:''}, submitState:'idle', lastPayload:'', copied:false }; /* p3 = Phase 3 builder state (QF/SF picks + t = 3rd-place winner + f = champion) */
+const state = { tab:'standings', selected:null, openMatch:null, standMode:'total', bracketSub:'p3', matchSub:'fixtures', zoom:1, picks:{r32:{},r16:{}}, builderName:null, q4:'', q5:'', p3:{qf:{},sf:{},t:'',f:''}, submitState:'idle', lastPayload:'', copied:false }; /* p3 = Phase 3 builder state (QF/SF picks + t = 3rd-place winner + f = champion) */
 let DATA, TABLES, PROJ, STAND, TEAM, POT, M, M3, AGG, AGG3;
 
 // Value-for-mode for standings/squad display (NOT the ranking authority — that's
