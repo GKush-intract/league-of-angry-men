@@ -523,7 +523,7 @@
     {
       "name": "Banshan",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "ESP",
       "q2": "Ousmane Dembélé",
       "q3": "David Raya",
@@ -635,7 +635,7 @@
     {
       "name": "Dale shylla",
       "nick": "",
-      "b": 0,
+      "b": 10,
       "q1": "ESP",
       "q2": "Kylian Mbappé",
       "q3": "Alisson",
@@ -747,7 +747,7 @@
     {
       "name": "Garrick Shanpru",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "ESP",
       "q2": "Lionel Messi",
       "q3": "Emiliano Martínez",
@@ -859,7 +859,7 @@
     {
       "name": "Krishna",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "ESP",
       "q2": "Erling Haaland",
       "q3": "Mike Maignan",
@@ -971,7 +971,7 @@
     {
       "name": "Kushagra",
       "nick": "",
-      "b": 0,
+      "b": 15,
       "q1": "ESP",
       "q2": "Kylian Mbappé",
       "q3": "Unai Simón",
@@ -1083,7 +1083,7 @@
     {
       "name": "Luke Shanpru",
       "nick": "",
-      "b": 0,
+      "b": 10,
       "q1": "POR",
       "q2": "Kylian Mbappé",
       "q3": "Unai Simón",
@@ -1307,7 +1307,7 @@
     {
       "name": "Mohit Agarwal",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "FRA",
       "q2": "Kylian Mbappé",
       "q3": "Emiliano Martínez",
@@ -1419,7 +1419,7 @@
     {
       "name": "Mohit Ghune",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "ESP",
       "q2": "Lamine Yamal",
       "q3": "Mike Maignan",
@@ -1643,7 +1643,7 @@
     {
       "name": "Prasoon Chaturvedi",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "FRA",
       "q2": "Kylian Mbappé",
       "q3": "Emiliano Martínez",
@@ -1979,7 +1979,7 @@
     {
       "name": "Sangam",
       "nick": "",
-      "b": 0,
+      "b": 10,
       "q1": "ESP",
       "q2": "Harry Kane",
       "q3": "Unai Simón",
@@ -2091,7 +2091,7 @@
     {
       "name": "Sanjog",
       "nick": "",
-      "b": 0,
+      "b": 5,
       "q1": "POR",
       "q2": "Kylian Mbappé",
       "q3": "Diogo Costa",
@@ -2315,7 +2315,7 @@
     {
       "name": "Vaibhav Gupta",
       "nick": "",
-      "b": 0,
+      "b": 15,
       "q1": "ESP",
       "q2": "Kylian Mbappé",
       "q3": "Unai Simón",
@@ -3857,6 +3857,7 @@
       "ARG"
     ],
     "third": "ENG",
+    "champion": "ESP",
     "q4": [
       "BEL"
     ],
@@ -4198,7 +4199,10 @@
       "a": "ARG",
       "date": "2026-07-20",
       "time": "12:30 AM",
-      "done": false
+      "hs": 1,
+      "as": 0,
+      "done": true,
+      "w": "ESP"
     }
   ]
 }
