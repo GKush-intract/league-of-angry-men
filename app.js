@@ -134,7 +134,33 @@ function viewStandings() {
     </div>
     <span style="flex:none;font-family:'Barlow Condensed';font-weight:800;font-size:14px;background:#ffce3a;color:#1a1400;padding:8px 14px;border-radius:10px;white-space:nowrap;">VIEW →</span>
   </button>` : '';
+  // Full-time hero: tournament is over — podium + sign-off, always ranked by TOTAL
+  // regardless of the selected segment below.
+  const t3 = [...STAND].sort((a, b) => b.total - a.total || b.q - a.q || a.name.localeCompare(b.name)).slice(0, 3);
+  const pod = (p, place) => {
+    const [medalEmoji, h, c, bg] = place === 1
+      ? ['👑', 84, '#ffce3a', 'linear-gradient(180deg,rgba(255,206,58,.32),rgba(255,206,58,.07))']
+      : place === 2
+        ? ['🥈', 58, '#dfe7ee', 'linear-gradient(180deg,rgba(220,228,235,.26),rgba(220,228,235,.06))']
+        : ['🥉', 44, '#e6a15c', 'linear-gradient(180deg,rgba(205,127,50,.28),rgba(205,127,50,.06))'];
+    return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div style="font-size:${place === 1 ? 30 : 22}px;line-height:1;">${medalEmoji}</div>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:${place === 1 ? 20 : 16}px;line-height:1.05;text-align:center;${place === 1 ? 'color:#b6ff3a;' : ''}white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${esc(p.name)}</div>
+      <div style="font-family:'JetBrains Mono';font-weight:800;font-size:${place === 1 ? 18 : 14}px;color:${c};line-height:1;">${p.total} PTS</div>
+      <div style="width:100%;height:${h}px;border-radius:10px 10px 0 0;background:${bg};border:1px solid #2c5a38;border-bottom:none;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-family:'Barlow Condensed';font-weight:900;font-size:26px;color:${c};">${place}</div>
+    </div>`;
+  };
+  const finaleHero = `
+  <div style="position:relative;margin:14px 0 0;padding:18px 16px 0;border-radius:18px;background:radial-gradient(120% 90% at 50% -10%,#15452a 0%,#0c2115 55%,#0a1813 100%);border:1px solid #2c5a38;overflow:hidden;">
+    <div style="position:absolute;right:-20px;top:-28px;font-size:130px;opacity:.07;">🏆</div>
+    <div style="text-align:center;font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.2em;color:#ffce3a;position:relative;">🏁 FULL TIME · THE WORLD CUP IS OVER</div>
+    <div style="text-align:center;font-size:12px;color:#9fb3a6;margin-top:6px;position:relative;">🇪🇸 Spain are world champions · the pot goes to <b style="color:#b6ff3a;">${esc(t3[0].name)}</b></div>
+    <div style="display:flex;align-items:flex-end;gap:10px;margin-top:16px;position:relative;">${pod(t3[1], 2)}${pod(t3[0], 1)}${pod(t3[2], 3)}</div>
+    <div style="height:2px;background:#1c3a28;position:relative;"></div>
+    <div style="text-align:center;font-size:12px;color:#9fb3a6;padding:12px 0 14px;position:relative;">38 days · 104 matches · 20 angry men.<br>Thanks for playing — come back for <b style="color:#ffce3a;">2030</b>. 🫡</div>
+  </div>`;
   return `
+  ${finaleHero}
   ${phase2Banner}
   <div style="display:flex;gap:8px;margin:14px 0 4px;">
     ${statTile('PRIZE POOL', POT, '#ffce3a')}${statTile('ANGRY MEN', STAND.length, '#eef5ec')}${statTile('MAX PTS', 200, '#eef5ec')}
